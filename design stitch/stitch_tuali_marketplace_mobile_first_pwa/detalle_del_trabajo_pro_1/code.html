@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#f7f9fb",
+                    "on-surface": "#191c1e",
+                    "on-primary-fixed-variant": "#264191",
+                    "primary-fixed": "#dce1ff",
+                    "primary-container": "#1e3a8a",
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary-container": "#571a00",
+                    "background": "#f7f9fb",
+                    "inverse-surface": "#2d3133",
+                    "inverse-on-surface": "#eff1f3",
+                    "on-primary-fixed": "#00164e",
+                    "on-secondary-fixed": "#370e00",
+                    "secondary-fixed-dim": "#ffb599",
+                    "on-tertiary-container": "#27c38a",
+                    "on-tertiary": "#ffffff",
+                    "outline-variant": "#c5c5d3",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-error": "#ffffff",
+                    "tertiary": "#00311f",
+                    "primary-fixed-dim": "#b6c4ff",
+                    "surface-bright": "#f7f9fb",
+                    "outline": "#757682",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdbce",
+                    "surface-container-highest": "#e0e3e5",
+                    "inverse-primary": "#b6c4ff",
+                    "surface-container": "#eceef0",
+                    "on-surface-variant": "#444651",
+                    "tertiary-container": "#004a31",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e6e8ea",
+                    "error-container": "#ffdad6",
+                    "on-background": "#191c1e",
+                    "secondary": "#a73a00",
+                    "surface-tint": "#4059aa",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "primary": "#00236f",
+                    "on-tertiary-fixed": "#002113",
+                    "on-secondary-fixed-variant": "#7f2b00",
+                    "surface-dim": "#d8dadc",
+                    "on-error-container": "#93000a",
+                    "surface-container-low": "#f2f4f6",
+                    "secondary-container": "#fd651e",
+                    "on-primary-container": "#90a8ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "0.75rem",
+                    "2xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Plus Jakarta Sans"],
+                    "label": ["Plus Jakarta Sans"],
+                    "mono": ["JetBrains Mono"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .backdrop-blur-xl { backdrop-filter: blur(24px); }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 py-4 w-full sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0px_12px_32px_rgba(30,58,138,0.06)]">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#f2f4f6] transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-semibold text-[#1E3A8A] text-lg">Detalle del trabajo</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">verified</span>
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</div>
+</header>
+<main class="max-w-md mx-auto px-4 pt-6 pb-24 space-y-6">
+<!-- Success Banner -->
+<div class="bg-[#10B981] rounded-2xl p-5 flex items-start gap-4 shadow-lg shadow-emerald-500/10">
+<div class="bg-white/20 p-2 rounded-full">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<p class="text-white font-bold leading-tight">Listo. Ya puedes ver los datos del cliente.</p>
+<p class="text-emerald-50 text-xs mt-1 font-mono uppercase tracking-wider">TRANSACCIÓN EXITOSA</p>
+</div>
+</div>
+<!-- Customer Card -->
+<section class="bg-surface-container-lowest rounded-2xl p-6 shadow-[0px_12px_32px_rgba(30,58,138,0.06)] border border-outline-variant/10">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="font-mono text-[10px] uppercase tracking-widest text-primary font-bold mb-1 block">CLIENTE FINAL</span>
+<h2 class="text-2xl font-extrabold text-primary tracking-tight">Ana R.</h2>
+</div>
+<div class="w-12 h-12 rounded-full bg-surface-container-low flex items-center justify-center border border-outline-variant/20 overflow-hidden">
+<img alt="Professional portrait of a middle-aged woman with a friendly smile, neutral office background, soft natural lighting" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9-KKK2j0c1KibIPtQrmUcmxnuzN6frPeDCmQ5QHBhOwZWb5lENkpsOJm6K1mT98sd4RYRPSSzUcFaXo4ByOH2nZtYVwljcOB4mSilw1GZ_gfwGRjo-2uODqAnLkTt5vgtMFa0-WCUuMn39mjOm4ajDhE_5UftqyzsHCJmb4KUX-Wsy7xCjJHPzXzGAgPbt2QMtkbVm34lj_dqe3YWPOo9EIZtsJqftAeUPVi57yOfQj9sY6KqTIp4z4-j4EdEejDsebzpepWN7-8"/>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Phone Info -->
+<div class="flex items-center gap-4 group">
+<div class="p-3 bg-surface-container-low rounded-xl group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-primary">call</span>
+</div>
+<div>
+<p class="font-mono text-lg font-bold text-on-surface tracking-tight">310 123 4567</p>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">TELÉFONO CELULAR</p>
+</div>
+</div>
+<!-- Address Info -->
+<div class="flex items-center gap-4 group">
+<div class="p-3 bg-surface-container-low rounded-xl group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-primary">location_on</span>
+</div>
+<div>
+<p class="text-on-surface font-semibold leading-snug">Condominio Peñalisa, Casa 4B, Ricaurte</p>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-medium">UBICACIÓN DEL SERVICIO</p>
+</div>
+</div>
+</div>
+<!-- Description -->
+<div class="mt-8 pt-6 border-t border-surface-container-low">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">REQUERIMIENTO DEL TRABAJO</span>
+</div>
+<p class="text-on-surface-variant leading-relaxed text-base">
+                El lavaplatos amaneció botando agua por debajo y la llave principal no cierra bien. Necesito alguien urgente.
+            </p>
+</div>
+</section>
+<!-- CTAs Section -->
+<section class="grid grid-cols-2 gap-3 mt-4">
+<button class="flex items-center justify-center gap-2 bg-[#25D366] text-white py-4 px-4 rounded-xl font-bold shadow-lg shadow-green-500/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-xl">forum</span>
+<span class="text-sm">WhatsApp</span>
+</button>
+<button class="flex items-center justify-center gap-2 border-2 border-primary text-primary py-4 px-4 rounded-xl font-bold active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-xl">call</span>
+<span class="text-sm">Llamar ahora</span>
+</button>
+</section>
+<!-- Technical Specification Card (Bento Style) -->
+<div class="bg-surface-container-low rounded-2xl p-4">
+<div class="flex justify-between items-center mb-4">
+<span class="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">DETALLES TÉCNICOS</span>
+<span class="text-[10px] bg-white px-2 py-1 rounded-full font-mono text-primary font-bold">#PLU-4029</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-3 rounded-lg">
+<p class="text-[9px] font-mono text-on-surface-variant uppercase mb-1">Categoría</p>
+<p class="font-bold text-primary text-xs">Plomería Experta</p>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-lg">
+<p class="text-[9px] font-mono text-on-surface-variant uppercase mb-1">Prioridad</p>
+<p class="font-bold text-secondary text-xs">Urgente</p>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Custom Floating Island Style) -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 flex justify-around items-center px-4 py-2 max-w-md mx-auto mb-6">
+<div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-[0px_12px_32px_rgba(30,58,138,0.1)] rounded-full flex justify-around items-center w-full py-2 px-4 border border-outline-variant/10">
+<a class="flex flex-col items-center justify-center text-[#444651] p-3 hover:bg-slate-100 transition-all rounded-full scale-98 active:scale-90" href="#">
+<span class="material-symbols-outlined">home_work</span>
+<span class="font-['JetBrains_Mono'] uppercase text-[10px] tracking-widest mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#1E3A8A] text-white rounded-full p-3 shadow-lg shadow-blue-900/30 scale-98 active:scale-90" href="#">
+<span class="material-symbols-outlined">build_circle</span>
+<span class="font-['JetBrains_Mono'] uppercase text-[10px] tracking-widest mt-1">Tasks</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#444651] p-3 hover:bg-slate-100 transition-all rounded-full scale-98 active:scale-90" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-['JetBrains_Mono'] uppercase text-[10px] tracking-widest mt-1">Messages</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#444651] p-3 hover:bg-slate-100 transition-all rounded-full scale-98 active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['JetBrains_Mono'] uppercase text-[10px] tracking-widest mt-1">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>

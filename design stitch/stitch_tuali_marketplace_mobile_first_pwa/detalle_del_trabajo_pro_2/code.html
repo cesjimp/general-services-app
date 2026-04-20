@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#ffb599",
+                        "surface-dim": "#d8dadc",
+                        "secondary-fixed": "#ffdbce",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "error": "#ba1a1a",
+                        "primary-fixed": "#dce1ff",
+                        "surface-tint": "#4059aa",
+                        "surface-container-low": "#f2f4f6",
+                        "on-tertiary-container": "#27c38a",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "on-secondary-fixed-variant": "#7f2b00",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary-fixed": "#370e00",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#004a31",
+                        "on-tertiary": "#ffffff",
+                        "secondary": "#a73a00",
+                        "surface": "#f7f9fb",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-variant": "#e0e3e5",
+                        "on-primary-fixed-variant": "#264191",
+                        "primary": "#00236f",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#eceef0",
+                        "secondary-container": "#fd651e",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-primary-container": "#90a8ff",
+                        "on-surface": "#191c1e",
+                        "on-secondary-container": "#571a00",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "outline": "#757682",
+                        "surface-bright": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#6ffbbe",
+                        "error-container": "#ffdad6",
+                        "on-surface-variant": "#444651",
+                        "inverse-surface": "#2d3133",
+                        "background": "#f7f9fb",
+                        "tertiary": "#00311f",
+                        "outline-variant": "#c5c5d3",
+                        "on-background": "#191c1e",
+                        "inverse-primary": "#b6c4ff",
+                        "primary-container": "#1e3a8a",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-tertiary-fixed": "#002113",
+                        "on-primary-fixed": "#00164e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .mono-text { font-family: 'JetBrains Mono', monospace; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<div class="max-w-md mx-auto min-h-screen flex flex-col relative bg-surface">
+<!-- TopAppBar -->
+<header class="bg-white/80 backdrop-blur-xl font-['Plus_Jakarta_Sans'] font-semibold shadow-sm sticky top-0 z-50 flex justify-between items-center h-16 px-6 w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 transition-transform duration-200 flex items-center justify-center w-10 h-10 rounded-full hover:bg-slate-100/50">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="text-xl font-extrabold tracking-tight text-[#1E3A8A]">Detalle del trabajo</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="Professional profile headshot of a service provider with a friendly expression and clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7DhQb3Qr1i6F6LcDf3UcTuaarSql4CAWHB0m7vpzM1Z0VJ-Y5aNxckH0Jn3Z1tftKDe0olyvCxzuHLIzS4Rb7j4qTPvd63nfK7A_PgglNGdu9WR8srdz3YTrRLB0qMLcOoho_vtpXVnU5Kn3rlk6yqHTYiFkUaziOXIM5sp-RXbIXWXOswBkJeGlsp8Ja9xr-2LYyhWrhWeQr5zRpPPkbD4FGr-h5ZeVLP5zlilSUj_ExwUs9i10JpDV4B-nfndj8oT9OsncdjZ8"/>
+</div>
+</header>
+<main class="flex-1 pb-32">
+<!-- Success Banner -->
+<div class="w-full bg-[#10B981]/10 px-6 py-4 flex items-center gap-3">
+<div class="bg-[#10B981] rounded-full p-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<p class="text-[#065F46] font-semibold text-sm">Listo. Ya puedes ver los datos del cliente.</p>
+</div>
+<div class="px-6 py-8 space-y-8">
+<!-- Customer Card -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_12px_24px_rgba(0,0,0,0.04)] space-y-6">
+<div class="flex items-center gap-4">
+<div class="w-20 h-20 rounded-lg overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="Portrait of Ana R., a cheerful female client looking into the camera in a soft natural light setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpeVDhW56sWaS7mZNFlVjJNFei6RXU0UcaO4o0eEjL9ELN0uVouDbyyhYKDoKIMgN9X9bbsU5Ck_UUNfYhF-7WKJFY_lamk84pYEb44BSaE24yW9bTeYLctw3Jcro843vv_OC26cdc-1-7I9VKX7yYip6mtJGNvEGwHawQzbGeNYFdgrl4vyLQkx5QNC1amm9acztoWeBV89jVOSc0WGwhS1ouP1FReqPZNz0pd1-2hKWgViNpVCQAj8e81YnXafErZhUGcpY1Ark"/>
+</div>
+<div>
+<h2 class="text-2xl font-extrabold text-primary leading-tight">Ana R.</h2>
+<div class="flex items-center gap-1 text-secondary font-medium text-sm">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.9 (24 trabajos)</span>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Phone Block -->
+<div class="bg-surface-container-low rounded-lg p-4 flex justify-between items-center group active:scale-[0.98] transition-all">
+<div class="space-y-1">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Teléfono móvil</span>
+<p class="mono-text text-lg font-medium text-on-surface">+34 612 345 678</p>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-white text-primary shadow-sm">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+</div>
+<!-- Address Block -->
+<div class="flex gap-4 items-start p-2">
+<div class="mt-1 w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary">location_on</span>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Ubicación de recogida</span>
+<p class="text-on-surface font-medium leading-snug">Calle de Serrano, 45, 28001 Madrid, España</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Map Preview (Asymmetric Layout) -->
+<div class="relative h-48 rounded-lg overflow-hidden group">
+<img class="w-full h-full object-cover grayscale-[0.2] transition-transform duration-700 group-hover:scale-105" data-alt="Aerial map view of an upscale city district with green parks and organized street layout" data-location="Madrid" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCBrAsKFXC6bsQgmRdakfBSJBhsLVhGOBruFyu4AQntfY7EIv8CO4R_L0l5qyEK8KEqB5altujlLbFW8Ne-XiRHeAuw_EZqS2HerMkoiHcMudPOL2rfiFD4vQxN_82ruFHJg0lfxJAC0wWH7ew2_DEqOJQzqMtWi4_bta3Ies1MqD56edgCEXHPJQM6RTFtcKh__do1svcQYBa7TROw3tVcy8UTO-dk5O62E1JL70DH-mwtmkePoz4bkAQffwbWeUkF4CYwYxmQZ7A"/>
+<div class="absolute inset-0 bg-primary/10 pointer-events-none"></div>
+<div class="absolute bottom-4 right-4 bg-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">map</span>
+<span class="text-xs font-bold text-primary">VER RUTA COMPLETA</span>
+</div>
+</div>
+<!-- Description Content -->
+<section class="space-y-4">
+<h3 class="text-xl font-bold text-primary tracking-tight">Descripción del trabajo</h3>
+<div class="bg-surface-container-low/50 rounded-lg p-6">
+<p class="text-on-surface-variant leading-[1.6] text-base">
+                            "Busco un paseador con experiencia para Max, mi Golden Retriever de 3 años. Es muy sociable pero tiene mucha energía y necesita caminar al menos 45 minutos. Preferiblemente alguien que pueda venir entre las 10:00 y las 11:30 de la mañana de lunes a jueves."
+                        </p>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="text-[10px] font-bold uppercase text-on-surface-variant block mb-1">Duración</span>
+<span class="mono-text font-bold text-primary">60 MIN</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<span class="text-[10px] font-bold uppercase text-on-surface-variant block mb-1">Presupuesto</span>
+<span class="mono-text font-bold text-primary">15,00€</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Sticky Footer Actions -->
+<footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 backdrop-blur-xl p-4 flex gap-3 z-50 shadow-[0_-12px_24px_rgba(0,0,0,0.06)]">
+<button class="flex-[0_0_70%] bg-[#25D366] text-white flex items-center justify-center gap-2 py-4 rounded-md font-bold text-lg active:scale-95 transition-all shadow-lg shadow-[#25D366]/20">
+<svg class="w-6 h-6 fill-current" viewbox="0 0 24 24">
+<path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.538-2.961-2.654-.087-.116-.708-.941-.708-1.792 0-.85.445-1.268.603-1.441.159-.173.346-.217.462-.217.115 0 .23 0 .332.005.109.004.254-.041.398.305.144.347.491 1.197.535 1.284.044.087.073.188.014.303-.058.116-.087.188-.173.289l-.26.303c-.087.087-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.088.275.073.376-.044.1-.117.434-.506.549-.679.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"></path>
+</svg>
+                Hablar por WhatsApp
+            </button>
+<button class="flex-[0_0_26%] border-2 border-[#1E3A8A] text-[#1E3A8A] flex items-center justify-center rounded-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">call</span>
+</button>
+</footer>
+</div>
+</body></html>

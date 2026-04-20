@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1E3A8A;
+  --color-secondary: #EA580C;
+  --color-success: #10B981;
+
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-muted: var(--brand-muted);
+
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+:root {
+  /* Modo Cliente por defecto (Trust Navy) */
+  --brand: #1E3A8A; 
+  --brand-light: #EFF6FF;
+  --brand-muted: #1e3a8a1a; 
+  --action: #EA580C;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll {
+  display: flex;
+  width: max-content;
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
+.theme-pro {
+  /* Modo Profesional (Action Orange) */
+  --brand: #EA580C;
+  --brand-light: #FFF7ED;
+  --brand-muted: #ea580c1a;
+  --action: #1E3A8A;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-[#1A1D23] antialiased;
+  }
+}

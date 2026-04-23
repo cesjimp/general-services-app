@@ -6,6 +6,7 @@ import AuthScreen from './pages/auth/AuthScreen';
 import UpgradeToProScreen from './pages/auth/UpgradeToProScreen';
 import JobDetailScreen from './pages/JobDetailScreen';
 import CreateJobScreen from './pages/CreateJobScreen';
+import ClientJobsScreen from './pages/ClientJobsScreen';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
           <Route index element={<Navigate to="/auth" replace />} />
           <Route path="home" element={<ClientHomeScreen />} />
           <Route path="feed" element={<FeedScreen />} />
-          <Route path="mis-trabajos" element={<div className="p-6 text-center text-slate-500">Mis Trabajos B2C (Próximamente)</div>} />
+          <Route path="mis-trabajos" element={<ClientJobsScreen />} />
           <Route path="agenda" element={<div className="p-6 text-center text-slate-500">Agenda B2B (Próximamente)</div>} />
           <Route path="profile" element={
             <div className="p-6">

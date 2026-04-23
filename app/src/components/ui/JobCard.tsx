@@ -1,5 +1,6 @@
 import { MapPin, Ruler, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getCategoryIcon } from '../../utils/categoryIcons';
 
 interface JobCardProps {
   id: string;
@@ -24,15 +25,20 @@ export default function JobCard({
         className="relative overflow-hidden bg-[#1E3A8A] rounded-xl p-6 shadow-xl border border-blue-900/20 group cursor-pointer active:scale-[0.98] transition-all"
       >
         <div className="absolute top-0 right-0 p-4 opacity-10">
-          <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.5 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
-          </svg>
+          <div className="w-24 h-24 text-white">
+            {getCategoryIcon(category)}
+          </div>
         </div>
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-4">
-            <span className="bg-[#EA580C] text-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
-              Urgente
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 text-[#EA580C]">
+                {getCategoryIcon(category)}
+              </div>
+              <span className="bg-[#EA580C] text-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
+                {category}
+              </span>
+            </div>
             <span className="text-blue-100 text-xs font-medium opacity-80">{timeAgo}</span>
           </div>
           <h2 className="text-white text-xl font-bold mb-3 leading-tight">{title}</h2>
@@ -59,9 +65,14 @@ export default function JobCard({
   return (
     <div className="bg-white rounded-xl p-6 shadow-[0_12px_24px_rgba(0,0,0,0.04)] border border-slate-200">
       <div className="flex justify-between items-start mb-4">
-        <span className="bg-[#EA580C]/10 text-[#EA580C] px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
-          {category}
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 text-brand">
+            {getCategoryIcon(category)}
+          </div>
+          <span className="bg-brand/10 text-brand px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
+            {category}
+          </span>
+        </div>
         <span className="text-slate-500 text-xs font-medium">{timeAgo}</span>
       </div>
       
@@ -79,7 +90,7 @@ export default function JobCard({
       </div>
       
       <div className="bg-slate-50 rounded-lg p-3 flex items-center gap-3 mb-6">
-        <Lock className="w-5 h-5 text-[#1E3A8A]" />
+        <Lock className="w-5 h-5 text-brand" />
         <span className="text-xs text-slate-500 font-medium">Datos de contacto ocultos</span>
       </div>
       

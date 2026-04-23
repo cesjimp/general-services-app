@@ -1,8 +1,67 @@
-import { LogIn } from 'lucide-react';
+import { LogIn, User, Briefcase, RefreshCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
+import { useState } from 'react';
 
 export default function AuthScreen() {
   const navigate = useNavigate();
+  const { setUser, setProfile } = useRoleStore();
+  const [debugMsg, setDebugMsg] = useState('');
+
+  const handleTestLogin = async (role: 'client' | 'pro') => {
+    // Clientes: 01 a 05 | Pros: 06 a 20
+    const idNum = role === 'client' 
+      ? Math.floor(Math.random() * 5) + 1 
+      : Math.floor(Math.random() * 15) + 6;
+    
+    const id = `00000000-0000-0000-0000-0000000000${idNum.toString().padStart(2, '0')}`;
+    
+    setDebugMsg('Cargando perfil...');
+
+    try {
+      // 1. Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // 2. If pro, fetch profession from metadata
+      let profession = '';
+      if (role === 'pro') {
+        const { data: metaData } = await supabase
+          .from('professionals_metadata')
+          .select('categories')
+          .eq('id', id)
+          .single();
+        
+        if (metaData && metaData.categories && metaData.categories.length > 0) {
+          profession = metaData.categories[0];
+        }
+      }
+
+      // 3. Update Store
+      setUser(role, id);
+      setProfile({
+        fullName: profileData.full_name,
+        avatarUrl: profileData.avatar_url,
+        credits: profileData.credits_balance || 0,
+        profession: profession
+      });
+
+      setDebugMsg(`Bienvenido, ${profileData.full_name}`);
+      
+      setTimeout(() => {
+        navigate(role === 'client' ? '/home' : '/feed');
+      }, 800);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setDebugMsg(`Error: ${err.message || 'Fallo de conexión'}`);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -18,14 +77,38 @@ export default function AuthScreen() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2 text-center">
           Bienvenido a <span className="text-brand">Tuali</span>
         </h1>
-        <p className="text-slate-500 text-center text-sm font-medium mb-12">
+        <p className="text-slate-500 text-center text-sm font-medium mb-8">
           Te conectamos con los mejores profesionales para tus arreglitos en casa.
         </p>
+
+        {/* Debug Login Section */}
+        <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 mb-8 shadow-sm">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center flex items-center justify-center gap-2">
+            <RefreshCcw className="w-3 h-3" />
+            Modo Desarrollo: Perfiles Aleatorios
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => handleTestLogin('client')}
+              className="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 border border-slate-100 transition-all gap-1"
+            >
+              <User className="w-5 h-5 text-brand" />
+              <span className="text-xs font-bold text-slate-700">Entrar Cliente</span>
+            </button>
+            <button 
+              onClick={() => handleTestLogin('pro')}
+              className="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 border border-slate-100 transition-all gap-1"
+            >
+              <Briefcase className="w-5 h-5 text-[#EA580C]" />
+              <span className="text-xs font-bold text-slate-700">Entrar Pro</span>
+            </button>
+          </div>
+          {debugMsg && <p className="text-[9px] text-center mt-2 text-slate-400 italic">{debugMsg}</p>}
+        </div>
 
         {/* Action Buttons */}
         <div className="w-full space-y-4">
           <button 
-            onClick={() => navigate('/home')}
             className="w-full bg-brand text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <LogIn className="w-5 h-5" />
@@ -33,7 +116,6 @@ export default function AuthScreen() {
           </button>
           
           <button 
-            onClick={() => navigate('/home')}
             className="w-full bg-white text-slate-700 border border-slate-200 font-bold py-4 rounded-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">

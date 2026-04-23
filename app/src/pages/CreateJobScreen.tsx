@@ -1,34 +1,112 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Send, Sparkles, CheckCircle2, User, Users } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
+import { useRoleStore } from '../store/useRoleStore';
+import { getCategoryIcon } from '../utils/categoryIcons';
 
 export default function CreateJobScreen() {
   const navigate = useNavigate();
   const location = useLocation();
+  const userId = useRoleStore(state => state.userId);
+  
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Form States
   const [category, setCategory] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [isUrgent, setIsUrgent] = useState(false);
+  const [department, setDepartment] = useState('');
+  const [locationName, setLocationName] = useState('');
+  const [address, setAddress] = useState('');
+  const [receiverName, setReceiverName] = useState('');
+  const [specialInstructions, setSpecialInstructions] = useState('');
+
+  const municipalities: Record<string, string[]> = {
+    'Tolima': ['Ibagué', 'Melgar', 'Espinal', 'Flandes'],
+    'Cundinamarca': ['Girardot', 'Ricaurte', 'Fusagasugá', 'Villeta']
+  };
+
+  // ... (dentro del componente)
+  
   const [isCategoryLocked, setIsCategoryLocked] = useState(false);
   const [notificationType, setNotificationType] = useState<'all' | 'manual' | 'suggested'>('all');
   const [selectedPros, setSelectedPros] = useState<string[]>([]);
-
-  // Profesionales "ficticios" para la selección manual
-  const mockPros = [
-    { id: '1', name: 'Carlos M.', category: 'Plomería', rating: 4.9 },
-    { id: '2', name: 'Juan P.', category: 'Electricidad', rating: 4.8 },
-    { id: '3', name: 'Andrés R.', category: 'Plomería', rating: 4.7 },
-  ];
+  const [availablePros, setAvailablePros] = useState<any[]>([]);
+  const [loadingPros, setLoadingPros] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const catParam = params.get('category');
     if (catParam) {
-      const normalizedCat = catParam.toLowerCase();
+      // Normalizamos: minúsculas y quitar tildes para coincidir con el select
+      const normalizedCat = catParam
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      
       setCategory(normalizedCat);
       setIsCategoryLocked(true);
       setNotificationType('suggested');
     }
   }, [location]);
+
+  // Cargar profesionales cuando cambia la categoría o la ubicación
+  useEffect(() => {
+    if (category && locationName) {
+      fetchAvailablePros();
+    }
+  }, [category, locationName]);
+
+  async function fetchAvailablePros() {
+    setLoadingPros(true);
+    try {
+      // Normalizamos la categoría: quitamos tildes y pasamos a minúsculas
+      const catToSearch = category
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const { data, error } = await supabase
+        .from('professionals_metadata')
+        .select(`
+          id,
+          categories,
+          avg_rating,
+          service_cities,
+          profiles!inner (
+            full_name,
+            city_residence
+          )
+        `)
+        .contains('categories', [catToSearch])
+        .contains('service_cities', [locationName])
+        .order('avg_rating', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      
+      // Mapear los datos para que mantengan la estructura esperada por la UI
+      const formattedData = data?.map(item => ({
+        id: item.id,
+        full_name: item.profiles.full_name,
+        city_residence: item.profiles.city_residence,
+        professionals_metadata: {
+          categories: item.categories,
+          avg_rating: item.avg_rating,
+          service_cities: item.service_cities
+        }
+      })) || [];
+
+      setAvailablePros(formattedData);
+    } catch (error) {
+      console.error('Error fetching pros:', error);
+    } finally {
+      setLoadingPros(false);
+    }
+  }
 
   const toggleProSelection = (id: string) => {
     if (selectedPros.includes(id)) {
@@ -38,14 +116,33 @@ export default function CreateJobScreen() {
     }
   };
 
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) {
+      alert('Debes estar logueado para publicar.');
+      return;
+    }
+
     setIsSubmitting(true);
-    // Simular el tiempo de envío de notificaciones
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const { error } = await supabase.from('jobs').insert({
+        client_id: userId,
+        category,
+        description: `${title}\n\n${description}\n\nInstrucciones: ${specialInstructions}`,
+        location: `${locationName} - ${address} (Persona: ${receiverName})`,
+        status: 'open'
+      });
+
+      if (error) throw error;
+
       navigate('/home?success=true');
-    }, 2000);
+    } catch (err: any) {
+      console.error('Error creando trabajo:', err);
+      alert('Hubo un error al publicar el trabajo.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,10 +201,10 @@ export default function CreateJobScreen() {
                       className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed transition-all`}
                     >
                       <option value="">Selecciona una categoría</option>
-                      <option value="plomería">Plomería</option>
+                      <option value="plomeria">Plomería</option>
                       <option value="electricidad">Electricidad</option>
                       <option value="pintura">Pintura</option>
-                      <option value="carpintería">Carpintería</option>
+                      <option value="carpinteria">Carpintería</option>
                       <option value="general">Mantenimiento General</option>
                     </select>
                     {!isCategoryLocked && (
@@ -126,6 +223,8 @@ export default function CreateJobScreen() {
                     type="text" 
                     placeholder="Ej: Fuga de agua en lavaplatos" 
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     required
                   />
                 </div>
@@ -136,6 +235,8 @@ export default function CreateJobScreen() {
                     placeholder="Explica qué está sucediendo, desde cuándo, y qué necesitas que hagan..." 
                     rows={4}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     required
                   ></textarea>
                 </div>
@@ -147,6 +248,8 @@ export default function CreateJobScreen() {
                       type="checkbox" 
                       id="urgent"
                       className="w-5 h-5 accent-brand rounded-md"
+                      checked={isUrgent}
+                      onChange={(e) => setIsUrgent(e.target.checked)}
                     />
                     <label htmlFor="urgent" className="text-sm font-extrabold text-orange-900">
                       ¡Es Urgente! (Atención en menos de 2h)
@@ -177,23 +280,49 @@ export default function CreateJobScreen() {
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="space-y-6">
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Departamento</label>
-                    <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand appearance-none">
-                      <option>Selecciona</option>
-                      <option>Antioquia</option>
-                      <option>Bogotá D.C.</option>
-                      <option>Valle del Cauca</option>
-                    </select>
+                    <div className="relative">
+                      <select 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand appearance-none"
+                        value={department}
+                        onChange={(e) => {
+                          setDepartment(e.target.value);
+                          setLocationName(''); // Reset municipio
+                        }}
+                      >
+                        <option value="">Selecciona</option>
+                        <option value="Tolima">Tolima</option>
+                        <option value="Cundinamarca">Cundinamarca</option>
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Municipio / Ciudad</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ej: Medellín" 
-                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand"
-                    />
+                    <div className="relative">
+                      <select 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand appearance-none disabled:bg-slate-50 disabled:text-slate-400"
+                        value={locationName}
+                        onChange={(e) => setLocationName(e.target.value)}
+                        disabled={!department}
+                      >
+                        <option value="">Selecciona</option>
+                        {department && municipalities[department].map(muni => (
+                          <option key={muni} value={muni}>{muni}</option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -214,6 +343,8 @@ export default function CreateJobScreen() {
                       type="text" 
                       placeholder="Nombre de la persona en el lugar" 
                       className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-slate-900 focus:outline-none focus:border-brand"
+                      value={receiverName}
+                      onChange={(e) => setReceiverName(e.target.value)}
                     />
                   </div>
                 </div>
@@ -224,6 +355,8 @@ export default function CreateJobScreen() {
                     placeholder="Ej: Tocar el timbre que dice 201, entrar por la portería lateral..." 
                     rows={3}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand resize-none"
+                    value={specialInstructions}
+                    onChange={(e) => setSpecialInstructions(e.target.value)}
                   ></textarea>
                 </div>
 
@@ -308,24 +441,44 @@ export default function CreateJobScreen() {
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Expertos en tu zona</p>
                     <p className="text-xs font-bold text-brand">{selectedPros.length}/3 seleccionados</p>
                   </div>
-                  {mockPros.map(pro => (
-                    <div 
-                      key={pro.id}
-                      onClick={() => toggleProSelection(pro.id)}
-                      className={`p-4 rounded-xl border flex items-center gap-4 cursor-pointer transition-all ${selectedPros.includes(pro.id) ? 'border-brand bg-brand/5' : 'border-slate-100 bg-white'}`}
-                    >
-                      <div className="bg-slate-100 w-10 h-10 rounded-full flex items-center justify-center font-bold text-slate-500">
-                        {pro.name[0]}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-900 text-sm">{pro.name}</p>
-                        <p className="text-xs text-slate-500">{pro.category} • {pro.rating} ★</p>
-                      </div>
-                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPros.includes(pro.id) ? 'bg-brand border-brand text-white' : 'border-slate-200'}`}>
-                        {selectedPros.includes(pro.id) && <CheckCircle2 className="w-4 h-4" />}
-                      </div>
+                  {loadingPros ? (
+                    <div className="flex flex-col items-center justify-center py-6">
+                      <div className="w-6 h-6 border-2 border-brand/20 border-t-brand rounded-full animate-spin"></div>
+                      <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-wider">Buscando expertos...</p>
                     </div>
-                  ))}
+                  ) : availablePros.length === 0 ? (
+                    <div className="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+                      <p className="text-xs text-slate-500">No encontramos expertos en esta categoría todavía.</p>
+                    </div>
+                  ) : (
+                    availablePros.map(pro => (
+                      <div 
+                        key={pro.id}
+                        onClick={() => toggleProSelection(pro.id)}
+                        className={`p-4 rounded-xl border flex items-center gap-4 cursor-pointer transition-all ${selectedPros.includes(pro.id) ? 'border-brand bg-brand/5' : 'border-slate-100 bg-white'}`}
+                      >
+                        <div className="bg-brand/10 w-10 h-10 rounded-full flex items-center justify-center font-bold text-brand p-2.5">
+                          {getCategoryIcon(category)}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-900 text-sm">{pro.full_name}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <p className="text-[10px] text-slate-500 font-medium">{category} • {pro.professionals_metadata?.avg_rating || 4.5} ★</p>
+                            <span className="text-[10px] text-slate-300">•</span>
+                            <p className="text-[10px] text-slate-500 font-medium">Vive en: {pro.city_residence || 'No especificada'}</p>
+                          </div>
+                          <div className="flex gap-1 mt-1.5 overflow-x-auto no-scrollbar">
+                            <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
+                              Cubre {locationName}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPros.includes(pro.id) ? 'bg-brand border-brand text-white' : 'border-slate-200'}`}>
+                          {selectedPros.includes(pro.id) && <CheckCircle2 className="w-4 h-4" />}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
 

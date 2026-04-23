@@ -1,17 +1,46 @@
+import { useState, useEffect } from 'react';
 import JobCard from '../components/ui/JobCard';
+import { supabase } from '../lib/supabaseClient';
+import { useRoleStore } from '../store/useRoleStore';
 
 export default function FeedScreen() {
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { userId, profile } = useRoleStore();
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="max-w-md mx-auto px-6 pt-6">
       {/* Header Section */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-slate-900 text-2xl font-extrabold tracking-tight">Hola, Juan</h1>
+          <h1 className="text-slate-900 text-2xl font-extrabold tracking-tight">Hola, {profile?.fullName.split(' ')[0] || 'Profesional'}</h1>
           <p className="text-slate-500 text-sm">Explora nuevas oportunidades</p>
         </div>
-        <div className="bg-white shadow-sm rounded-full px-4 py-2 flex items-center gap-2 border border-slate-200">
+        <div className="bg-brand/5 rounded-full px-4 py-2 flex items-center gap-2 border border-brand/10">
           <span className="text-lg">🪙</span>
-          <span className="font-mono text-sm font-semibold text-brand">12 Créditos</span>
+          <span className="font-bold text-brand">{profile?.credits || 0} Créditos</span>
         </div>
       </div>
 
@@ -27,36 +56,25 @@ export default function FeedScreen() {
 
       {/* Lista de Trabajos (Feed) */}
       <div className="space-y-4 pb-32">
-        <JobCard
-          id="job-1"
-          category="Plomería"
-          timeAgo="Hace 10 min"
-          title="Fuga de agua en lavabo principal"
-          location="Barrio El Poblado"
-          distance="A 2.5 km de ti"
-          credits={1}
-          urgent={true}
-        />
-        
-        <JobCard
-          id="job-2"
-          category="Electricidad"
-          timeAgo="Hace 45 min"
-          title="Instalación de 4 lámparas de techo"
-          location="Centro Histórico"
-          distance="A 4.1 km de ti"
-          credits={1}
-        />
-
-        <JobCard
-          id="job-3"
-          category="Pintura"
-          timeAgo="Hace 2 horas"
-          title="Pintar fachada de casa (2 pisos)"
-          location="Barrio Laureles"
-          distance="A 5.0 km de ti"
-          credits={2}
-        />
+        {loading ? (
+          <div className="text-center py-10 text-slate-400">Cargando trabajos...</div>
+        ) : jobs.length === 0 ? (
+          <div className="text-center py-10 text-slate-400">No hay trabajos disponibles.</div>
+        ) : (
+          jobs.map((job) => (
+            <JobCard
+              key={job.id}
+              id={job.id}
+              category={job.category}
+              timeAgo="Reciente"
+              title={job.description.split('\n\n')[0]}
+              location={job.location.split(' - ')[0]}
+              distance="Girardot"
+              credits={1}
+              urgent={job.description.includes('¡Es Urgente!')}
+            />
+          ))
+        )}
       </div>
     </main>
   );

@@ -12,7 +12,8 @@ import {
   MapPin,
   ArrowLeft,
   Briefcase,
-  History
+  History,
+  Star
 } from 'lucide-react';
 import { getCategoryIcon } from '../utils/categoryIcons';
 
@@ -58,7 +59,7 @@ export default function ClientJobsScreen() {
         .order('created_at', { ascending: false });
 
       if (filter === 'active') {
-        query = query.in('status', ['open', 'contacted', 'agreement_pending', 'in_progress']);
+        query = query.in('status', ['open', 'contacted', 'agreement_pending', 'in_progress', 'review_pending']);
       } else {
         query = query.in('status', ['completed', 'cancelled']);
       }
@@ -83,6 +84,8 @@ export default function ClientJobsScreen() {
         return { label: 'Confirmar Acuerdo', color: 'text-orange-600 bg-orange-50 border border-orange-200', dot: 'bg-orange-500 animate-ping' };
       case 'in_progress':
         return { label: 'En Proceso', color: 'text-blue-600 bg-blue-50', dot: 'bg-blue-500' };
+      case 'review_pending':
+        return { label: 'Calificar Servicio', color: 'text-indigo-600 bg-indigo-50 border border-indigo-200', dot: 'bg-indigo-500 animate-pulse' };
       case 'completed':
         return { label: 'Completado', color: 'text-slate-600 bg-slate-100', dot: 'bg-slate-400' };
       case 'cancelled':
@@ -197,7 +200,12 @@ export default function ClientJobsScreen() {
 
                   {/* Professional Info / Action Call */}
                   <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                    {job.status === 'agreement_pending' ? (
+                    {job.status === 'review_pending' ? (
+                      <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50 w-full p-2 rounded-xl border border-indigo-100">
+                        <Star className="w-4 h-4 fill-indigo-600" />
+                        <span className="text-xs font-black uppercase tracking-tight">¡Califica el servicio!</span>
+                      </div>
+                    ) : job.status === 'agreement_pending' ? (
                       <div className="flex items-center gap-2 text-orange-600 bg-orange-50 w-full p-2 rounded-xl border border-orange-100">
                         <User className="w-4 h-4" />
                         <span className="text-xs font-black uppercase tracking-tight">¡Confirmación requerida!</span>

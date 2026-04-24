@@ -14,6 +14,8 @@ import RegisterScreen from './pages/auth/RegisterScreen';
 import ProOnboardingScreen from './pages/auth/ProOnboardingScreen';
 import CreditsScreen from './pages/CreditsScreen';
 
+import ProJobsScreen from './pages/ProJobsScreen';
+
 function App() {
   return (
     <BrowserRouter>
@@ -33,7 +35,7 @@ function App() {
           <Route path="home" element={<ClientHomeScreen />} />
           <Route path="feed" element={<FeedScreen />} />
           <Route path="mis-trabajos" element={<ClientJobsScreen />} />
-          <Route path="agenda" element={<div className="p-6 text-center text-slate-500">Agenda B2B (Próximamente)</div>} />
+          <Route path="agenda" element={<ProJobsScreen />} />
           <Route path="profile" element={
             <div className="p-6">
               <h2 className="text-xl font-bold text-slate-800 mb-4">Mi Perfil</h2>

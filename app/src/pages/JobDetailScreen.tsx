@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, ShieldCheck, AlertCircle, User, Star, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, ShieldCheck, AlertCircle, User, Star, CheckCircle, ClipboardCheck } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRoleStore } from '../store/useRoleStore';
 
@@ -40,6 +40,7 @@ export default function JobDetailScreen() {
   const [job, setJob] = useState<Job | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [hasApplied, setHasApplied] = useState(false);
+  const [leadDate, setLeadDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -61,12 +62,13 @@ export default function JobDetailScreen() {
       if (jobError) throw jobError;
       setJob(jobData);
 
-      // Cargamos los leads si es el dueño o si hay acuerdo pendiente
+      // Cargamos los leads con su fecha de creación
       const { data: leadsData, error: leadsError } = await supabase
         .from('leads')
         .select(`
           id,
           pro_id,
+          created_at,
           profiles:pro_id (
             full_name,
             avatar_url
@@ -77,9 +79,11 @@ export default function JobDetailScreen() {
       if (leadsError) throw leadsError;
       setLeads(leadsData as any || []);
 
-      // Si el usuario es PRO, verificamos si ya se postuló
+      // Si el usuario es PRO, verificamos si ya se postuló y cuándo
       if (role === 'pro' && userId) {
-        setHasApplied(leadsData?.some(l => l.pro_id === userId) || false);
+        const myLead = leadsData?.find(l => l.pro_id === userId);
+        setHasApplied(!!myLead);
+        setLeadDate(myLead?.created_at || null);
       }
     } catch (error) {
       console.error('Error fetching job details:', error);
@@ -87,6 +91,20 @@ export default function JobDetailScreen() {
       setLoading(false);
     }
   }
+
+  // Lógica de Privacidad: Ocultar contacto si pasaron 15 días o está completado
+  const checkPrivacy = () => {
+    if (role !== 'pro') return false; // El cliente siempre ve su propio contacto (aunque sea raro)
+    
+    const isCompleted = job?.status === 'completed';
+    const isExpired = leadDate 
+      ? (new Date().getTime() - new Date(leadDate).getTime()) > (15 * 24 * 60 * 60 * 1000) 
+      : false;
+
+    return isCompleted || isExpired;
+  };
+
+  const shouldHideContact = checkPrivacy();
 
   // El PRO indica que ya hizo un acuerdo
   async function markAsAgreed() {
@@ -458,21 +476,34 @@ export default function JobDetailScreen() {
                     {isOwner ? 'Dueño del trabajo' : 'Contacto Directo'}
                   </p>
                   <p className="font-black text-slate-900 text-lg leading-none">
-                    {isOwner ? 'Tú' : formatDisplayName(job.profiles?.full_name || '')}
+                    {isOwner 
+                      ? 'Tú' 
+                      : shouldHideContact 
+                        ? 'DATOS PROTEGIDOS' 
+                        : formatDisplayName(job.profiles?.full_name || '')}
                   </p>
-                  <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 mt-1 uppercase tracking-widest">
+                  <div className={`flex items-center gap-1 text-[10px] font-black mt-1 uppercase tracking-widest ${shouldHideContact ? 'text-slate-400' : 'text-emerald-500'}`}>
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Verificado</span>
+                    <span>{shouldHideContact ? 'Finalizado' : 'Verificado'}</span>
                   </div>
                 </div>
               </div>
               <div className="text-right relative z-10">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-1">Teléfono</p>
-                <p className="font-black text-brand text-xl tracking-tighter">
-                  {formatPhone(job.profiles?.phone || '')}
+                <p className={`font-black text-xl tracking-tighter ${shouldHideContact ? 'text-slate-300' : 'text-brand'}`}>
+                  {shouldHideContact ? '**********' : formatPhone(job.profiles?.phone || '')}
                 </p>
               </div>
             </div>
+
+            {shouldHideContact && !isOwner && (
+              <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-slate-500 font-bold leading-tight">
+                  Información protegida. Los datos de contacto se ocultan automáticamente al finalizar el trabajo o tras 15 días de la revelación para proteger la privacidad del cliente.
+                </p>
+              </div>
+            )}
 
             {/* Acciones para el PRO que ya tiene el contacto */}
             {hasApplied && job.status === 'contacted' && !isOwner && (
@@ -540,6 +571,24 @@ export default function JobDetailScreen() {
                   <p className="text-blue-900 text-xs font-black uppercase mb-4">Próximamente: Panel de Reseñas</p>
                   <div className="flex justify-center gap-2 mb-2">
                     {[1,2,3,4,5].map(i => <Star key={i} className="w-8 h-8 text-blue-200" />)}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Estado: Completed (Final total) */}
+            {job.status === 'completed' && (
+              <div className="bg-emerald-50 border-2 border-emerald-100 rounded-3xl p-8 mb-8 text-center shadow-sm">
+                <div className="w-20 h-20 bg-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-200">
+                  <ClipboardCheck className="text-white w-10 h-10" />
+                </div>
+                <h4 className="text-2xl font-black text-emerald-900 uppercase mb-2 tracking-tight">Trabajo Finalizado</h4>
+                <p className="text-emerald-600 text-sm font-bold mb-6">Este servicio ha sido cerrado exitosamente.</p>
+                
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-[10px] text-slate-400 font-black uppercase">Calificación Recibida</p>
+                  <div className="flex justify-center gap-1">
+                    {[1,2,3,4,5].map(i => <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />)}
                   </div>
                 </div>
               </div>

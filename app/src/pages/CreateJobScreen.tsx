@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Send, Sparkles, User, Users, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Send, Sparkles, User, Users, CheckCircle2, Lock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useRoleStore } from '../store/useRoleStore';
 import { getCategoryIcon } from '../utils/categoryIcons';
+import { detectSensitiveInfo, maskSensitiveInfo } from '../utils/privacy';
 import ProProfileModal from '../components/ui/ProProfileModal';
 
 export default function CreateJobScreen() {
@@ -24,6 +25,7 @@ export default function CreateJobScreen() {
   const [address, setAddress] = useState('');
   const [receiverName, setReceiverName] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
+  const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
 
   const municipalities: Record<string, string[]> = {
     'Tolima': ['Ibagué', 'Melgar', 'Espinal', 'Flandes'],
@@ -140,37 +142,26 @@ export default function CreateJobScreen() {
 
     setIsSubmitting(true);
 
-    // Función para filtrar información sensible (Teléfonos, Emails, Direcciones específicas)
-    const filterSensitiveInfo = (text: string) => {
-      if (!text) return '';
-      
-      // 1. Filtrar teléfonos (formatos colombianos comunes)
-      let filtered = text.replace(/(\+?57)?\s?3\d{2}\s?\d{3}\s?\d{4}/g, '[TELÉFONO OCULTO]');
-      filtered = filtered.replace(/\d{7,10}/g, '[NÚMERO OCULTO]'); // Números largos
-      
-      // 2. Filtrar emails
-      filtered = filtered.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL OCULTO]');
-      
-      // 3. Filtrar menciones de "llamar", "escribir a", "whatsapp" seguidos de números
-      filtered = filtered.replace(/(llamar|escribir|whatsapp|cel|tel|contáctame al)\s*[:\-\s]*\d+/gi, '$1 [INFO OCULTA]');
-      
-      // 4. Filtrar palabras clave de dirección (Calle, Carrera, Barrio, etc.)
-      const addressKeywords = ['calle', 'carrera', 'cll', 'cra', 'barrio', 'diagonal', 'transversal', 'avenida', 'av', 'apartamento', 'apto', 'conjunto', 'edificio', 'urbanizacion', 'manzana', 'casa', 'lote'];
-      const addressRegex = new RegExp(`\\b(${addressKeywords.join('|')})\\b\\s*#?\\s*\\d*\\w*`, 'gi');
-      filtered = filtered.replace(addressRegex, '[UBICACIÓN OCULTA]');
-      
-      return filtered;
-    };
+    const maskedDescription = maskSensitiveInfo(description);
+    const maskedInstructions = maskSensitiveInfo(specialInstructions);
+    const maskedAddress = maskSensitiveInfo(address);
 
-    const cleanDescription = filterSensitiveInfo(description);
-    const cleanInstructions = filterSensitiveInfo(specialInstructions);
+    const fullDescription = `${title}\n\n${description}\n\nNota: ${specialInstructions}`;
+    const publicDescription = `${title}\n\n${maskedDescription}\n\nNota: ${maskedInstructions}`;
+    
+    const fullLocation = `${locationName} - ${address} (Persona: ${receiverName})`;
+    const publicLocation = `${locationName} - ${maskedAddress} (Persona: ${receiverName})`;
 
     try {
       const { error } = await supabase.from('jobs').insert({
         client_id: userId,
         category,
-        description: `${title}\n\n${cleanDescription}\n\nNota: ${cleanInstructions}`,
-        location: `${locationName} - ${address} (Persona: ${receiverName})`,
+        title,
+        description: publicDescription,
+        location: publicLocation,
+        raw_description: fullDescription,
+        raw_location: fullLocation,
+        is_urgent: isUrgent,
         status: 'open'
       });
 
@@ -290,10 +281,24 @@ export default function CreateJobScreen() {
                     rows={4}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      setShowPrivacyWarning(detectSensitiveInfo(e.target.value));
+                    }}
                     required
                   ></textarea>
                 </div>
+
+                {showPrivacyWarning && (
+                  <div className="bg-orange-100 border-l-4 border-orange-500 p-4 rounded-r-xl animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center gap-3">
+                      <Lock className="w-5 h-5 text-orange-600" />
+                      <p className="text-xs font-bold text-orange-800">
+                        Por seguridad, la información de contacto o ubicación exacta será oculta hasta que un aliado acepte el trabajo.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Urgencia (Movida al Paso 1) */}
                 <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4">
@@ -407,17 +412,31 @@ export default function CreateJobScreen() {
 
                 <div>
                   <div className="flex flex-col mb-2">
-                    <label className="block text-sm font-bold text-slate-700">Indicaciones especiales</label>
+                    <label className="block text-sm font-bold text-slate-700">Instrucciones de llegada</label>
                     <span className="text-[10px] font-bold text-orange-600 uppercase">⚠️ No incluyas teléfonos ni correos aquí</span>
                   </div>
                   <textarea 
-                    placeholder="Ej: Tocar el timbre que dice 201, entrar por la portería lateral..." 
+                    placeholder="Ej: Torre 3, Apto 201. Tocar el timbre o preguntar por el Sr. Smith en portería..." 
                     rows={3}
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand resize-none"
                     value={specialInstructions}
-                    onChange={(e) => setSpecialInstructions(e.target.value)}
+                    onChange={(e) => {
+                      setSpecialInstructions(e.target.value);
+                      setShowPrivacyWarning(detectSensitiveInfo(e.target.value));
+                    }}
                   ></textarea>
                 </div>
+
+                {showPrivacyWarning && (
+                  <div className="bg-orange-100 border-l-4 border-orange-500 p-4 rounded-r-xl animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center gap-3">
+                      <Lock className="w-5 h-5 text-orange-600" />
+                      <p className="text-xs font-bold text-orange-800">
+                        Por seguridad, la información de contacto o ubicación exacta será oculta hasta que un aliado acepte el trabajo.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <button 

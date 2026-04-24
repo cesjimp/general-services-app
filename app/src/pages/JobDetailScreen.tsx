@@ -20,9 +20,16 @@ interface Job {
   category: string;
   description: string;
   location: string;
+  raw_description: string | null;
+  raw_location: string | null;
+  is_urgent: boolean;
   status: 'open' | 'in_progress' | 'completed' | 'cancelled';
   created_at: string;
   selected_pro_id: string | null;
+  profiles?: {
+    full_name: string;
+    phone: string;
+  };
 }
 
 export default function JobDetailScreen() {
@@ -47,7 +54,7 @@ export default function JobDetailScreen() {
     try {
       const { data: jobData, error: jobError } = await supabase
         .from('jobs')
-        .select('*')
+        .select('*, profiles:client_id(full_name, phone)')
         .eq('id', id)
         .single();
 
@@ -116,6 +123,30 @@ export default function JobDetailScreen() {
     }
   }
 
+  async function confirmAgreement() {
+    if (!job || !userId) return;
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ 
+          selected_pro_id: userId,
+          status: 'in_progress'
+        })
+        .eq('id', job.id);
+
+      if (error) throw error;
+      
+      alert('¡Acuerdo confirmado! El trabajo ahora está oficialmente a tu cargo.');
+      await fetchJobDetails();
+    } catch (error) {
+      console.error('Error confirming agreement:', error);
+      alert('Error al confirmar el acuerdo');
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   async function handleApply() {
     if (!job || !userId) return;
     setIsProcessing(true);
@@ -171,6 +202,23 @@ export default function JobDetailScreen() {
 
   const isOwner = job.client_id === userId;
 
+  const formatDisplayName = (fullName: string) => {
+    if (!fullName) return 'Cliente';
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length >= 4) return `${parts[0]} ${parts[2]}`;
+    if (parts.length >= 2) return `${parts[0]} ${parts[1]}`;
+    return parts[0];
+  };
+
+  const formatPhone = (phone: string) => {
+    if (!phone) return 'Sin teléfono';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+    }
+    return phone;
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 pb-32">
       {/* Navbar Superior */}
@@ -205,9 +253,9 @@ export default function JobDetailScreen() {
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-brand" />
               <span>
-                {(!isOwner && role === 'pro' && !hasApplied) 
-                  ? job.location.split(' - ')[0].trim() 
-                  : job.location}
+                {(isOwner || hasApplied || job.selected_pro_id === userId) 
+                  ? (job.raw_location || job.location)
+                  : job.location.split(' - ')[0].trim()}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -222,8 +270,10 @@ export default function JobDetailScreen() {
         {/* Descripción */}
         <div className="mb-8">
           <h3 className="font-bold text-slate-900 mb-3 text-lg">¿Qué se necesita?</h3>
-          <p className="text-slate-600 leading-relaxed">
-            {job.description}
+          <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">
+            {(isOwner || hasApplied || job.selected_pro_id === userId)
+              ? (job.raw_description || job.description)
+              : job.description}
           </p>
         </div>
 
@@ -271,24 +321,47 @@ export default function JobDetailScreen() {
 
         {/* Información del Cliente (Visible si ya se postuló o si es el dueño) */}
         {(isOwner || hasApplied) && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-8 flex items-center justify-between shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center">
-                <User className="text-slate-500 w-6 h-6" />
-              </div>
-              <div>
-                <p className="font-bold text-slate-900">{isOwner ? 'Tú (Cliente)' : 'Contacto del Cliente'}</p>
-                <div className="flex items-center gap-1 text-xs font-bold text-[#10B981] mt-0.5">
-                  <ShieldCheck className="w-3 h-3" />
-                  <span>Verificado</span>
+          <>
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 mb-6 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">
+                  <User className="text-slate-400 w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">
+                    {isOwner ? 'Tú (Cliente)' : formatDisplayName(job.profiles?.full_name || '')}
+                  </p>
+                  <div className="flex items-center gap-1 text-xs font-bold text-emerald-500 mt-0.5">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Verificado</span>
+                  </div>
                 </div>
               </div>
+              <div className="text-right">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Teléfono</p>
+                <p className="font-bold text-brand text-lg">
+                  {formatPhone(job.profiles?.phone || '')}
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-slate-500 font-medium mb-1">Teléfono</p>
-              <p className="font-mono font-bold text-brand tracking-widest">312 456 7890</p>
-            </div>
-          </div>
+
+            {hasApplied && job.status === 'open' && (
+              <button 
+                className="w-full bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mb-8 disabled:opacity-50"
+                onClick={confirmAgreement}
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Procesando...' : 'Confirmar acuerdo e iniciar trabajo'}
+              </button>
+            )}
+
+            {hasApplied && job.selected_pro_id === userId && (
+              <div className="w-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 mb-8">
+                <ShieldCheck className="w-5 h-5" />
+                Estás realizando este trabajo
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -299,15 +372,17 @@ export default function JobDetailScreen() {
             <span className="text-slate-600 font-medium">Costo de contacto:</span>
             <div className="flex items-center gap-1.5">
               <span className="text-xl">🪙</span>
-              <span className="font-mono font-bold text-slate-900 text-lg">1 Crédito</span>
+              <span className="font-mono font-bold text-slate-900 text-lg">
+                {job.is_urgent ? 2 : 1} {job.is_urgent ? 'Créditos' : 'Crédito'}
+              </span>
             </div>
           </div>
           <button 
             onClick={handleApply}
             disabled={isProcessing}
-            className="w-full bg-brand text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full bg-[#EA580C] text-white font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {isProcessing ? 'Procesando...' : 'Desbloquear Contacto'}
+            {isProcessing ? 'Procesando...' : `Tomar el trabajo (${job.is_urgent ? 2 : 1} ${job.is_urgent ? 'Créditos' : 'Crédito'})`}
           </button>
         </div>
       )}

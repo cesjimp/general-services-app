@@ -12,6 +12,7 @@ import CreateJobScreen from './pages/CreateJobScreen';
 import ClientJobsScreen from './pages/ClientJobsScreen';
 import RegisterScreen from './pages/auth/RegisterScreen';
 import ProOnboardingScreen from './pages/auth/ProOnboardingScreen';
+import CreditsScreen from './pages/CreditsScreen';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="/pro-onboarding" element={<ProOnboardingScreen />} />
         <Route path="/job/:id" element={<JobDetailScreen />} />
         <Route path="/create-job" element={<CreateJobScreen />} />
+        <Route path="/credits" element={<CreditsScreen />} />
 
         {/* Rutas dentro del layout principal */}
         <Route path="/" element={<AppLayout />}>

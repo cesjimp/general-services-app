@@ -13,57 +13,54 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleTestLogin = async (role: 'client' | 'pro') => {
-    // Clientes: 01 a 05 | Pros: 06 a 20
-    const idNum = role === 'client' 
-      ? Math.floor(Math.random() * 5) + 1 
-      : Math.floor(Math.random() * 15) + 6;
-    
-    const id = `00000000-0000-0000-0000-0000000000${idNum.toString().padStart(2, '0')}`;
-    
-    setDebugMsg('Cargando perfil...');
+  const handleTestLogin = async (role: 'client' | 'pro', email: string) => {
+    setDebugMsg('Iniciando sesión de prueba...');
 
     try {
-      // 1. Fetch profile data
+      // 1. Buscar perfil por Email
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', id)
-        .single();
+        .eq('email', email)
+        .maybeSingle();
 
       if (profileError) throw profileError;
-
-      // 2. If pro, fetch profession from metadata
-      let profession = '';
-      if (role === 'pro') {
-        const { data: metaData } = await supabase
-          .from('professionals_metadata')
-          .select('categories')
-          .eq('id', id)
-          .single();
-        
-        if (metaData && metaData.categories && metaData.categories.length > 0) {
-          profession = metaData.categories[0];
-        }
+      if (!profileData) {
+        throw new Error(`Usuario ${email} no encontrado.`);
       }
 
-      // 3. Update Store
-      setUser(role, id);
+      const id = profileData.id;
+
+      // 2. Buscar metadatos
+      let profession = '';
+      const { data: metaData } = await supabase
+        .from('professionals_metadata')
+        .select('categories')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (metaData && metaData.categories && metaData.categories.length > 0) {
+        profession = metaData.categories[0];
+      }
+
+      // 3. Actualizar Store
+      setUser(role, id, !!metaData);
       setProfile({
         fullName: profileData.full_name,
         avatarUrl: profileData.avatar_url,
         credits: profileData.credits_balance || 0,
-        profession: profession
+        profession: profession,
+        categories: metaData?.categories || [],
+        location: profileData.location || 'Girardot, Cundinamarca'
       });
 
       setDebugMsg(`Bienvenido, ${profileData.full_name}`);
-      
       setTimeout(() => {
         navigate(role === 'client' ? '/home' : '/feed');
-      }, 800);
+      }, 500);
     } catch (err: any) {
       console.error('Login error:', err);
-      setDebugMsg(`Error: ${err.message || 'Fallo de conexión'}`);
+      setDebugMsg(`Error: ${err.message}`);
     }
   };
 
@@ -109,7 +106,9 @@ export default function AuthScreen() {
         fullName: profileData.full_name,
         avatarUrl: profileData.avatar_url,
         credits: profileData.credits_balance || 0,
-        profession: (metaData?.categories?.[0]) || ''
+        profession: (metaData?.categories?.[0]) || '',
+        categories: metaData?.categories || [],
+        location: profileData.location || 'Girardot, Cundinamarca'
       });
 
       setDebugMsg('¡Ingreso exitoso!');
@@ -142,29 +141,52 @@ export default function AuthScreen() {
           Te conectamos con los mejores profesionales para tus arreglitos en casa.
         </p>
 
-        {/* Debug Login Section */}
+        {/* Debug Login Section - NEW SELECTOR */}
         <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 mb-8 shadow-sm">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 text-center flex items-center justify-center gap-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center flex items-center justify-center gap-2">
             <RefreshCcw className="w-3 h-3" />
-            Modo Desarrollo: Perfiles Aleatorios
+            Panel de Pruebas (Demo)
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          
+          <div className="space-y-4">
+            {/* Profesionales */}
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={() => handleTestLogin('pro', 'juan@volta.com')} className="flex flex-col items-center p-2 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-all">
+                <span className="text-[9px] font-black text-amber-900">JUAN</span>
+                <span className="text-[7px] font-bold text-amber-600">ELEC 1</span>
+              </button>
+              <button onClick={() => handleTestLogin('pro', 'carlos@ejemplo.com')} className="flex flex-col items-center p-2 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-all">
+                <span className="text-[9px] font-black text-amber-900">CARLOS</span>
+                <span className="text-[7px] font-bold text-amber-600">ELEC 2</span>
+              </button>
+              <button onClick={() => handleTestLogin('pro', 'mario@tubo.com')} className="flex flex-col items-center p-2 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
+                <span className="text-[9px] font-black text-blue-900">MARIO</span>
+                <span className="text-[7px] font-bold text-blue-600">PLOM 1</span>
+              </button>
+              <button onClick={() => handleTestLogin('pro', 'pedro@llave.com')} className="flex flex-col items-center p-2 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
+                <span className="text-[9px] font-black text-blue-900">PEDRO</span>
+                <span className="text-[7px] font-bold text-blue-600">PLOM 2</span>
+              </button>
+              <button onClick={() => handleTestLogin('pro', 'pablo@brocha.com')} className="flex flex-col items-center p-2 bg-rose-50 rounded-xl border border-rose-100 hover:bg-rose-100 transition-all">
+                <span className="text-[9px] font-black text-rose-900">PABLO</span>
+                <span className="text-[7px] font-bold text-rose-600">PINT 1</span>
+              </button>
+              <button onClick={() => handleTestLogin('pro', 'ana@pincel.com')} className="flex flex-col items-center p-2 bg-rose-50 rounded-xl border border-rose-100 hover:bg-rose-100 transition-all">
+                <span className="text-[9px] font-black text-rose-900">ANA</span>
+                <span className="text-[7px] font-bold text-rose-600">PINT 2</span>
+              </button>
+            </div>
+
+            {/* Cliente */}
             <button 
-              onClick={() => handleTestLogin('client')}
-              className="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 border border-slate-100 transition-all gap-1"
+              onClick={() => handleTestLogin('client', 'cliente1@ejemplo.com')}
+              className="w-full flex items-center justify-center gap-2 p-3 bg-slate-900 rounded-xl text-white hover:bg-slate-800 transition-all"
             >
-              <User className="w-5 h-5 text-brand" />
-              <span className="text-xs font-bold text-slate-700">Entrar Cliente</span>
-            </button>
-            <button 
-              onClick={() => handleTestLogin('pro')}
-              className="flex flex-col items-center justify-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 border border-slate-100 transition-all gap-1"
-            >
-              <Briefcase className="w-5 h-5 text-[#EA580C]" />
-              <span className="text-xs font-bold text-slate-700">Entrar Pro</span>
+              <User className="w-4 h-4" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Entrar como Cliente</span>
             </button>
           </div>
-          {debugMsg && <p className="text-[9px] text-center mt-2 text-slate-400 italic">{debugMsg}</p>}
+          {debugMsg && <p className="text-[10px] text-center mt-2 text-brand font-bold animate-pulse">{debugMsg}</p>}
         </div>
 
         {/* Real Login Form */}

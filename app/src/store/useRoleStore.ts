@@ -7,6 +7,8 @@ interface UserProfile {
   avatarUrl?: string;
   profession?: string;
   credits: number;
+  categories?: string[];
+  location?: string;
 }
 
 interface RoleState {

@@ -1,4 +1,4 @@
-import { MapPin, Lock, User, Flame, CheckCircle, Phone } from 'lucide-react';
+import { MapPin, Lock, User, Flame, CheckCircle, Phone, Clock, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryIcon } from '../../utils/categoryIcons';
 
@@ -36,6 +36,58 @@ export default function JobCard({
     return '***' + firstPart.slice(-2);
   };
   
+  const getStatusInfo = () => {
+    if (!isMine) return null;
+    
+    switch (status) {
+      case 'open':
+      case 'contacted':
+        return { 
+          label: 'Prospecto', 
+          sub: 'Contacto revelado. ¡Busca cerrar el trato!', 
+          color: 'bg-amber-500', 
+          border: 'border-amber-100', 
+          text: 'text-amber-900',
+          bg: 'bg-amber-50',
+          icon: <Phone className="w-5 h-5 text-white" />
+        };
+      case 'agreement_pending':
+        return { 
+          label: 'Pendiente de Confirmación', 
+          sub: 'Esperando que el cliente valide el acuerdo.', 
+          color: 'bg-orange-500', 
+          border: 'border-orange-100', 
+          text: 'text-orange-900',
+          bg: 'bg-orange-50',
+          icon: <Clock className="w-5 h-5 text-white animate-pulse" />
+        };
+      case 'in_progress':
+        return { 
+          label: 'Trabajo en Marcha', 
+          sub: '¡Estás a cargo de este servicio!', 
+          color: 'bg-emerald-600', 
+          border: 'border-emerald-200', 
+          text: 'text-emerald-900',
+          bg: 'bg-emerald-50',
+          icon: <CheckCircle className="w-5 h-5 text-white" />
+        };
+      case 'review_pending':
+        return { 
+          label: 'Esperando Reseña', 
+          sub: 'El trabajo terminó. ¡Deja tu calificación!', 
+          color: 'bg-blue-600', 
+          border: 'border-blue-200', 
+          text: 'text-blue-900',
+          bg: 'bg-blue-50',
+          icon: <Star className="w-5 h-5 text-white" />
+        };
+      default:
+        return null;
+    }
+  };
+
+  const statusInfo = getStatusInfo();
+  
   const CardContent = () => (
     <>
       <div className="flex justify-between items-start mb-4 gap-2">
@@ -52,10 +104,14 @@ export default function JobCard({
               Urgente
             </span>
           )}
-          {isMine && (
-            <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-1 border border-emerald-600 whitespace-nowrap shadow-sm">
-              <CheckCircle className="w-3 h-3" />
-              Tu contacto
+          {statusInfo && (
+            <span className={`${statusInfo.color} text-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest border border-white/20 whitespace-nowrap shadow-sm`}>
+              {statusInfo.label}
+            </span>
+          )}
+          {status === 'contacted' && !isMine && (
+            <span className="bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest border border-amber-100 whitespace-nowrap">
+              En Contacto
             </span>
           )}
         </div>
@@ -66,22 +122,22 @@ export default function JobCard({
         {title}
       </h2>
       
-      <p className="text-slate-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+      <p className="text-slate-600 text-sm mb-4 line-clamp-2 leading-relaxed font-medium">
         {description}
       </p>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        <div className="flex items-center gap-1.5 text-slate-500">
+        <div className="flex items-center gap-1.5 text-slate-500 font-bold">
           <div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center">
             <MapPin className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-bold">{cleanLocation(location)}</span>
+          <span className="text-xs">{cleanLocation(location)}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-slate-500">
+        <div className="flex items-center gap-1.5 text-slate-500 font-bold">
           <div className="w-6 h-6 rounded-lg bg-slate-50 flex items-center justify-center">
             <User className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-bold">Cliente: {maskName(clientName)}</span>
+          <span className="text-xs">Cliente: {isMine ? clientName : maskName(clientName)}</span>
         </div>
       </div>
       
@@ -90,23 +146,31 @@ export default function JobCard({
         <div className={`${urgent ? 'bg-orange-50/50 border-orange-100' : 'bg-slate-50 border-slate-100'} rounded-2xl p-4 flex flex-col gap-2 mb-6 border`}>
           <div className="flex items-center gap-3">
             <Lock className={`w-4 h-4 ${urgent ? 'text-orange-500' : 'text-brand'}`} />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-700">Datos de contacto ocultos</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              {status === 'contacted' ? 'Ya hay profesionales interesados' : 'Datos de contacto ocultos'}
+            </span>
           </div>
           <p className="text-[10px] leading-tight text-slate-400">
-            Toma el trabajo para entrar en contacto con el cliente y coordinar la visita.
+            {status === 'contacted' 
+              ? 'Aún puedes tomar este contacto si te interesa competir por el trabajo.' 
+              : 'Toma el trabajo para entrar en contacto con el cliente y coordinar la visita.'}
           </p>
         </div>
       )}
 
       {/* Si es mío, mostramos un indicador de éxito más premium */}
-      {isMine && (
-        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
-            <Phone className="text-white w-5 h-5" />
+      {isMine && statusInfo && (
+        <div className={`${statusInfo.bg} border ${statusInfo.border} rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-inner`}>
+          <div className={`w-10 h-10 ${statusInfo.color} rounded-xl flex items-center justify-center shadow-lg`}>
+            {statusInfo.icon}
           </div>
           <div>
-            <p className="text-xs font-black text-emerald-900 uppercase tracking-wide">¡Contacto Revelado!</p>
-            <p className="text-[10px] text-emerald-600 font-bold">Ya puedes ver el teléfono en detalles.</p>
+            <p className={`text-xs font-black ${statusInfo.text} uppercase tracking-wide`}>
+              {statusInfo.label}
+            </p>
+            <p className={`text-[10px] ${statusInfo.text} opacity-70 font-bold`}>
+              {statusInfo.sub}
+            </p>
           </div>
         </div>
       )}
@@ -116,20 +180,22 @@ export default function JobCard({
           e.stopPropagation();
           navigate(`/job/${id}`);
         }}
-        disabled={status !== 'open' && !isMine}
-        className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
-          status !== 'open' && !isMine
+        disabled={(status !== 'open' && status !== 'contacted') && !isMine}
+        className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest ${
+          (status !== 'open' && status !== 'contacted') && !isMine
             ? 'bg-slate-100 text-slate-400 shadow-none cursor-not-allowed'
             : isMine
-              ? 'bg-emerald-600 text-white shadow-emerald-500/20 hover:bg-emerald-700'
+              ? `${statusInfo?.color || 'bg-emerald-600'} text-white shadow-xl`
               : 'bg-[#EA580C] text-white shadow-orange-500/20 hover:bg-[#c2410c]'
         }`}
       >
         {isMine 
-          ? 'Ver contacto / Detalles'
+          ? 'Gestionar Trabajito'
           : status === 'open' 
-            ? `Tomar el trabajo (${credits} ${credits === 1 ? 'Crédito' : 'Créditos'})`
-            : 'Ya tiene un profesional en contacto'
+            ? `Tomar el trabajo (${credits} CR)`
+            : status === 'contacted'
+              ? `Tomar contacto (Competir)`
+              : 'Trabajo no disponible'
         }
       </button>
     </>
@@ -141,7 +207,7 @@ export default function JobCard({
       className={`relative overflow-hidden rounded-3xl p-6 shadow-xl border cursor-pointer group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 bg-white ${
         status !== 'open' && !isMine ? 'opacity-60 grayscale-[0.3]' : ''
       } ${
-        isMine ? 'border-emerald-200 shadow-emerald-500/5 ring-4 ring-emerald-50' : ''
+        isMine ? `border-2 ${statusInfo?.border || 'border-emerald-200'} ring-4 ring-slate-50` : ''
       } ${
         urgent 
           ? 'border-orange-400 shadow-orange-500/10 ring-4 ring-orange-50' 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import JobCard from '../components/ui/JobCard';
+import { Briefcase } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useRoleStore } from '../store/useRoleStore';
 
@@ -28,14 +29,27 @@ export default function FeedScreen() {
 
         const proCategories = proMeta?.categories || [];
 
-        // 2. Obtener IDs de trabajos que ya han sido tomados por ALGUIEN
-        const { data: takenLeads } = await supabase
+        // 2. Obtener IDs de trabajos que YO ya tomé
+        const { data: myLeads } = await supabase
+          .from('leads')
+          .select('job_id')
+          .eq('pro_id', userId);
+        
+        const myTakenIds = myLeads?.map(l => l.job_id) || [];
+
+        // 3. Obtener trabajos que ya tienen 3 o más leads
+        const { data: leadCounts } = await supabase
           .from('leads')
           .select('job_id');
         
-        const excludedIds = takenLeads?.map(l => l.job_id) || [];
+        const counts: Record<string, number> = {};
+        leadCounts?.forEach(l => {
+          counts[l.job_id] = (counts[l.job_id] || 0) + 1;
+        });
+        
+        const fullJobIds = Object.keys(counts).filter(id => counts[id] >= 3);
 
-        // 3. Consulta de disponibles
+        // 4. Consulta de disponibles
         let query = supabase
           .from('jobs')
           .select(`
@@ -44,17 +58,21 @@ export default function FeedScreen() {
               full_name
             )
           `)
-          .in('status', ['open', 'in_progress'])
+          .in('status', ['open', 'contacted'])
           .neq('client_id', userId)
           .order('created_at', { ascending: false });
 
-        // Excluir los que ya tomó
-        if (excludedIds.length > 0) {
-          query = query.not('id', 'in', `(${excludedIds.join(',')})`);
+        // Solo excluir si hay IDs para excluir
+        if (myTakenIds && myTakenIds.length > 0) {
+          query = query.not('id', 'in', `(${myTakenIds.join(',')})`);
         }
 
-        // Filtrar por categorías
-        if (proCategories.length > 0) {
+        if (fullJobIds && fullJobIds.length > 0) {
+          query = query.not('id', 'in', `(${fullJobIds.join(',')})`);
+        }
+
+        // Filtrar por categorías solo si el pro tiene categorías asignadas
+        if (proCategories && proCategories.length > 0) {
           query = query.in('category', proCategories);
         }
 
@@ -78,8 +96,20 @@ export default function FeedScreen() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        // Mapear para que tenga la misma estructura
-        setJobs(data?.map(l => l.jobs) || []);
+
+        // Filtrar: Solo mostrar si no hay pro seleccionado O si el pro seleccionado soy YO
+        const filteredJobs = data
+          ?.map(l => l.jobs)
+          .filter(job => {
+            if (!job) return false;
+            // Si el trabajo ya tiene un pro seleccionado y NO soy yo, lo ocultamos
+            if (job.selected_pro_id && job.selected_pro_id !== userId) {
+              return false;
+            }
+            return true;
+          }) || [];
+
+        setJobs(filteredJobs);
       }
     } catch (err) {
       console.error('Error fetching jobs:', err);
@@ -129,10 +159,21 @@ export default function FeedScreen() {
         {loading ? (
           <div className="text-center py-10 text-slate-400">Cargando trabajos...</div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-10 text-slate-400">
-            {activeTab === 'available' 
-              ? 'No hay trabajos disponibles en tus especialidades.' 
-              : 'Aún no has tomado ningún trabajo.'}
+          <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+              <Briefcase className="w-8 h-8 text-slate-300" />
+            </div>
+            <p className="text-slate-500 font-bold mb-1">
+              {activeTab === 'available' 
+                ? 'No hay trabajos disponibles' 
+                : 'Aún no has tomado ningún trabajo'}
+            </p>
+            <p className="text-slate-400 text-sm max-w-[200px]">
+              {activeTab === 'available' 
+                ? `No encontramos ofertas en: ${(profile?.categories?.join(', ')) || 'Sin categorías'}`
+                : 'Tus contactos revelados aparecerán aquí.'}
+            </p>
+            {!userId && <p className="text-rose-500 text-[10px] mt-4 font-bold uppercase">Sesión no detectada en Store</p>}
           </div>
         ) : (
           jobs.map((job) => (

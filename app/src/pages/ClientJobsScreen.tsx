@@ -35,18 +35,18 @@ export default function ClientJobsScreen() {
   const { userId } = useRoleStore();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'open' | 'closed'>('all');
+  const [filter, setFilter] = useState<'active' | 'history'>('active');
 
   useEffect(() => {
     if (userId) {
       fetchJobs();
     }
-  }, [userId]);
+  }, [userId, filter]);
 
   async function fetchJobs() {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('jobs')
         .select(`
           *,
@@ -57,6 +57,13 @@ export default function ClientJobsScreen() {
         .eq('client_id', userId)
         .order('created_at', { ascending: false });
 
+      if (filter === 'active') {
+        query = query.in('status', ['open', 'contacted', 'agreement_pending', 'in_progress']);
+      } else {
+        query = query.in('status', ['completed', 'cancelled']);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setJobs(data || []);
     } catch (error) {
@@ -66,10 +73,24 @@ export default function ClientJobsScreen() {
     }
   }
 
-  const filteredJobs = jobs.filter(job => {
-    if (filter === 'all') return true;
-    return job.status === filter;
-  });
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'open':
+        return { label: 'Buscando Pro', color: 'text-emerald-600 bg-emerald-50', dot: 'bg-emerald-500 animate-pulse' };
+      case 'contacted':
+        return { label: 'En Contacto', color: 'text-amber-600 bg-amber-50', dot: 'bg-amber-500' };
+      case 'agreement_pending':
+        return { label: 'Confirmar Acuerdo', color: 'text-orange-600 bg-orange-50 border border-orange-200', dot: 'bg-orange-500 animate-ping' };
+      case 'in_progress':
+        return { label: 'En Proceso', color: 'text-blue-600 bg-blue-50', dot: 'bg-blue-500' };
+      case 'completed':
+        return { label: 'Completado', color: 'text-slate-600 bg-slate-100', dot: 'bg-slate-400' };
+      case 'cancelled':
+        return { label: 'Cancelado', color: 'text-rose-600 bg-rose-50', dot: 'bg-rose-500' };
+      default:
+        return { label: status, color: 'text-slate-600 bg-slate-100', dot: 'bg-slate-400' };
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -79,102 +100,125 @@ export default function ClientJobsScreen() {
           <button onClick={() => navigate('/home')} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
-          <h1 className="text-xl font-bold text-slate-900">Mis Solicitudes</h1>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">Mis Solicitudes</h1>
         </div>
       </header>
 
       <main className="max-w-md mx-auto p-6">
-        {/* Filters */}
-        <div className="flex gap-2 mb-6">
-          {(['all', 'open', 'closed'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                filter === f 
-                  ? 'bg-brand text-white shadow-lg shadow-brand/20' 
-                  : 'bg-white text-slate-500 border border-slate-100 hover:border-brand/20'
-              }`}
-            >
-              {f === 'all' ? 'Todos' : f === 'open' ? 'Abiertos' : 'Cerrados'}
-            </button>
-          ))}
+        {/* Tab Selector */}
+        <div className="bg-slate-200/50 p-1.5 rounded-2xl flex mb-8">
+          <button 
+            onClick={() => setFilter('active')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+              filter === 'active' 
+                ? 'bg-brand text-white shadow-md' 
+                : 'text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            Activas
+          </button>
+          <button 
+            onClick={() => setFilter('history')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+              filter === 'history' 
+                ? 'bg-brand text-white shadow-md' 
+                : 'text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            Historial
+          </button>
         </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-10 h-10 border-4 border-brand/20 border-t-brand rounded-full animate-spin"></div>
-            <p className="text-slate-400 text-sm mt-4 font-medium">Cargando tu historial...</p>
+            <p className="text-slate-400 text-sm mt-4 font-bold uppercase tracking-widest">Sincronizando...</p>
           </div>
-        ) : filteredJobs.length === 0 ? (
-          <div className="bg-white rounded-3xl p-10 text-center border border-dashed border-slate-200">
+        ) : jobs.length === 0 ? (
+          <div className="bg-white rounded-3xl p-10 text-center border border-dashed border-slate-200 shadow-sm">
             <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Briefcase className="w-8 h-8 text-slate-300" />
             </div>
-            <h3 className="text-slate-900 font-bold mb-1">No hay trabajos aquí</h3>
-            <p className="text-slate-500 text-sm mb-6">Aún no has solicitado servicios de este tipo.</p>
-            <button 
-              onClick={() => navigate('/create-job')}
-              className="bg-brand text-white px-6 py-3 rounded-xl font-bold text-sm"
-            >
-              Solicitar primer servicio
-            </button>
+            <h3 className="text-slate-900 font-bold mb-1">No hay {filter === 'active' ? 'trabajos activos' : 'historial'}</h3>
+            <p className="text-slate-500 text-sm mb-6">
+              {filter === 'active' ? 'Cuando publiques una solicitud aparecerá aquí.' : 'Tus trabajos finalizados se guardan aquí.'}
+            </p>
+            {filter === 'active' && (
+              <button 
+                onClick={() => navigate('/create-job')}
+                className="bg-brand text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-lg shadow-brand/20 active:scale-95 transition-all"
+              >
+                Publicar un trabajito
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredJobs.map((job) => (
-              <div 
-                key={job.id}
-                onClick={() => navigate(`/job/${job.id}`)}
-                className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer active:scale-[0.99]"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${job.status === 'open' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></span>
-                    <span className={`text-[10px] font-extrabold uppercase tracking-widest ${job.status === 'open' ? 'text-emerald-600' : 'text-slate-500'}`}>
-                      {job.status === 'open' ? 'Buscando Pro' : 'Servicio Finalizado'}
+            {jobs.map((job) => {
+              const config = getStatusConfig(job.status);
+              return (
+                <div 
+                  key={job.id}
+                  onClick={() => navigate(`/job/${job.id}`)}
+                  className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer active:scale-[0.99] relative overflow-hidden"
+                >
+                  {/* Status Indicator */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${config.color}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">
+                        {config.label}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg">
+                      <Calendar className="w-3 h-3 text-slate-400" />
+                      {new Date(job.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {new Date(job.created_at).toLocaleDateString()}
-                  </span>
-                </div>
 
-                <div className="flex items-center gap-3 mb-1">
-                  <div className="w-8 h-8 rounded-xl bg-brand/10 text-brand flex items-center justify-center p-2">
-                    {getCategoryIcon(job.category)}
-                  </div>
-                  <h3 className="font-bold text-slate-900 group-hover:text-brand transition-colors leading-none">{job.title}</h3>
-                </div>
-                <p className="text-slate-500 text-xs line-clamp-2 mb-4 leading-relaxed">
-                  {job.description}
-                </p>
-
-                <div className="flex items-center gap-4 pt-4 border-t border-slate-50">
-                  <div className="flex items-center gap-1.5">
-                    <div className="bg-slate-100 p-1.5 rounded-lg">
-                      <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                  {/* Content */}
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center p-3 group-hover:bg-brand/10 group-hover:text-brand transition-all">
+                      {getCategoryIcon(job.category)}
                     </div>
-                    <span className="text-[11px] font-bold text-slate-600">{job.location}</span>
-                  </div>
-                  
-                  {job.profiles?.full_name ? (
-                    <div className="flex items-center gap-1.5 ml-auto">
-                      <div className="bg-brand/10 p-1.5 rounded-lg">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-brand" />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-slate-900 group-hover:text-brand transition-colors text-lg leading-tight mb-1">
+                        {job.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-xs font-medium text-slate-500">{job.location}</span>
                       </div>
-                      <span className="text-[11px] font-bold text-slate-900">Pro: {job.profiles.full_name}</span>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 ml-auto text-slate-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[11px] font-bold">Pendiente</span>
-                    </div>
-                  )}
+                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-brand transition-all" />
+                  </div>
+
+                  {/* Professional Info / Action Call */}
+                  <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                    {job.status === 'agreement_pending' ? (
+                      <div className="flex items-center gap-2 text-orange-600 bg-orange-50 w-full p-2 rounded-xl border border-orange-100">
+                        <User className="w-4 h-4" />
+                        <span className="text-xs font-black uppercase tracking-tight">¡Confirmación requerida!</span>
+                      </div>
+                    ) : job.profiles?.full_name ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-brand/10 flex items-center justify-center">
+                          <User className="w-3.5 h-3.5 text-brand" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-700">Pro: {job.profiles.full_name}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-slate-400">
+                        <Clock className="w-4 h-4" />
+                        <span className="text-xs font-bold">Esperando expertos...</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>

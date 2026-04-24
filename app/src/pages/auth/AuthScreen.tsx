@@ -142,51 +142,83 @@ export default function AuthScreen() {
         </p>
 
         {/* Debug Login Section - NEW SELECTOR */}
-        <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 mb-8 shadow-sm">
+        <div className="w-full bg-white border border-slate-200 rounded-2xl p-5 mb-8 shadow-sm">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 text-center flex items-center justify-center gap-2">
             <RefreshCcw className="w-3 h-3" />
             Panel de Pruebas (Demo)
           </p>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Profesionales */}
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => handleTestLogin('pro', 'juan@volta.com')} className="flex flex-col items-center p-2 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-all">
-                <span className="text-[9px] font-black text-amber-900">JUAN</span>
-                <span className="text-[7px] font-bold text-amber-600">ELEC 1</span>
-              </button>
-              <button onClick={() => handleTestLogin('pro', 'carlos@ejemplo.com')} className="flex flex-col items-center p-2 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-all">
-                <span className="text-[9px] font-black text-amber-900">CARLOS</span>
-                <span className="text-[7px] font-bold text-amber-600">ELEC 2</span>
-              </button>
-              <button onClick={() => handleTestLogin('pro', 'mario@tubo.com')} className="flex flex-col items-center p-2 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
-                <span className="text-[9px] font-black text-blue-900">MARIO</span>
-                <span className="text-[7px] font-bold text-blue-600">PLOM 1</span>
-              </button>
-              <button onClick={() => handleTestLogin('pro', 'pedro@llave.com')} className="flex flex-col items-center p-2 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
-                <span className="text-[9px] font-black text-blue-900">PEDRO</span>
-                <span className="text-[7px] font-bold text-blue-600">PLOM 2</span>
-              </button>
-              <button onClick={() => handleTestLogin('pro', 'pablo@brocha.com')} className="flex flex-col items-center p-2 bg-rose-50 rounded-xl border border-rose-100 hover:bg-rose-100 transition-all">
-                <span className="text-[9px] font-black text-rose-900">PABLO</span>
-                <span className="text-[7px] font-bold text-rose-600">PINT 1</span>
-              </button>
-              <button onClick={() => handleTestLogin('pro', 'ana@pincel.com')} className="flex flex-col items-center p-2 bg-rose-50 rounded-xl border border-rose-100 hover:bg-rose-100 transition-all">
-                <span className="text-[9px] font-black text-rose-900">ANA</span>
-                <span className="text-[7px] font-bold text-rose-600">PINT 2</span>
-              </button>
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase mb-2 px-1">Profesionales</p>
+              <div className="grid grid-cols-3 gap-2">
+                <button onClick={() => handleTestLogin('pro', 'juan@volta.com')} className="flex flex-col items-center p-2 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-all">
+                  <span className="text-[9px] font-black text-amber-900">JUAN</span>
+                  <span className="text-[7px] font-bold text-amber-600 italic truncate w-full text-center">ELÉCTRICO</span>
+                </button>
+                <button onClick={() => handleTestLogin('pro', 'carlos@ejemplo.com')} className="flex flex-col items-center p-2 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-all">
+                  <span className="text-[9px] font-black text-amber-900">CARLOS</span>
+                  <span className="text-[7px] font-bold text-amber-600 italic truncate w-full text-center">ELÉCTRICO</span>
+                </button>
+                <button onClick={() => handleTestLogin('pro', 'mario@tubo.com')} className="flex flex-col items-center p-2 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
+                  <span className="text-[9px] font-black text-blue-900">MARIO</span>
+                  <span className="text-[7px] font-bold text-blue-600 italic truncate w-full text-center">PLOMERO</span>
+                </button>
+                <button onClick={() => handleTestLogin('pro', 'pedro@llave.com')} className="flex flex-col items-center p-2 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
+                  <span className="text-[9px] font-black text-blue-900">PEDRO</span>
+                  <span className="text-[7px] font-bold text-blue-600 italic truncate w-full text-center">PLOMERO</span>
+                </button>
+                <button onClick={() => handleTestLogin('pro', 'pablo@brocha.com')} className="flex flex-col items-center p-2 bg-rose-50 rounded-xl border border-rose-100 hover:bg-rose-100 transition-all">
+                  <span className="text-[9px] font-black text-rose-900">PABLO</span>
+                  <span className="text-[7px] font-bold text-rose-600 italic truncate w-full text-center">PINTOR</span>
+                </button>
+                <button onClick={() => handleTestLogin('pro', 'ana@pincel.com')} className="flex flex-col items-center p-2 bg-rose-50 rounded-xl border border-rose-100 hover:bg-rose-100 transition-all">
+                  <span className="text-[9px] font-black text-rose-900">ANA</span>
+                  <span className="text-[7px] font-bold text-rose-600 italic truncate w-full text-center">PINTORA</span>
+                </button>
+              </div>
             </div>
 
-            {/* Cliente */}
-            <button 
-              onClick={() => handleTestLogin('client', 'cliente1@ejemplo.com')}
-              className="w-full flex items-center justify-center gap-2 p-3 bg-slate-900 rounded-xl text-white hover:bg-slate-800 transition-all"
-            >
-              <User className="w-4 h-4" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Entrar como Cliente</span>
-            </button>
+            {/* Clientes */}
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase mb-2 px-1">Clientes</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => handleTestLogin('client', 'marta@ejemplo.com')}
+                  className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
+                >
+                  <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <User className="w-3 h-3 text-emerald-600" />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] font-black text-slate-900">MARTA</span>
+                    <span className="text-[7px] font-bold text-slate-500 uppercase">Residencial</span>
+                  </div>
+                </button>
+                <button 
+                  onClick={() => handleTestLogin('client', 'roberto@ejemplo.com')}
+                  className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-all"
+                >
+                  <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <User className="w-3 h-3 text-blue-600" />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] font-black text-slate-900">ROBERTO</span>
+                    <span className="text-[7px] font-bold text-slate-500 uppercase">Inmobiliaria</span>
+                  </div>
+                </button>
+                <button 
+                  onClick={() => handleTestLogin('client', 'cliente1@ejemplo.com')}
+                  className="col-span-2 flex items-center justify-center gap-2 p-3 bg-slate-900 rounded-xl text-white hover:bg-slate-800 transition-all mt-2"
+                >
+                  <User className="w-4 h-4 text-brand" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">JUAN CLIENTE (DEFAULT)</span>
+                </button>
+              </div>
+            </div>
           </div>
-          {debugMsg && <p className="text-[10px] text-center mt-2 text-brand font-bold animate-pulse">{debugMsg}</p>}
+          {debugMsg && <p className="text-[10px] text-center mt-4 text-brand font-bold animate-pulse">{debugMsg}</p>}
         </div>
 
         {/* Real Login Form */}

@@ -1,4 +1,4 @@
-import { MapPin, Ruler, Lock } from 'lucide-react';
+import { MapPin, Lock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryIcon } from '../../utils/categoryIcons';
 
@@ -7,96 +7,103 @@ interface JobCardProps {
   category: string;
   timeAgo: string;
   title: string;
+  description: string;
   location: string;
-  distance: string;
+  clientName: string;
   credits: number;
   urgent?: boolean;
 }
 
 export default function JobCard({ 
-  id, category, timeAgo, title, location, distance, credits, urgent = false 
+  id, category, timeAgo, title, description, location, clientName, credits, urgent = false 
 }: JobCardProps) {
   const navigate = useNavigate();
-  
-  if (urgent) {
-    return (
-      <div 
-        onClick={() => navigate(`/job/${id}`)}
-        className="relative overflow-hidden bg-[#1E3A8A] rounded-xl p-6 shadow-xl border border-blue-900/20 group cursor-pointer active:scale-[0.98] transition-all"
-      >
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <div className="w-24 h-24 text-white">
-            {getCategoryIcon(category)}
-          </div>
-        </div>
-        <div className="relative z-10">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 text-[#EA580C]">
-                {getCategoryIcon(category)}
-              </div>
-              <span className="bg-[#EA580C] text-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
-                {category}
-              </span>
-            </div>
-            <span className="text-blue-100 text-xs font-medium opacity-80">{timeAgo}</span>
-          </div>
-          <h2 className="text-white text-xl font-bold mb-3 leading-tight">{title}</h2>
-          
-          <div className="space-y-2 mb-6">
-            <div className="flex items-center gap-2 text-blue-100">
-              <MapPin className="w-[18px] h-[18px]" />
-              <span className="text-sm font-medium">{location}</span>
-            </div>
-            <div className="flex items-center gap-2 text-blue-100">
-              <Ruler className="w-[18px] h-[18px]" />
-              <span className="font-mono text-xs font-semibold">{distance}</span>
-            </div>
-          </div>
-          
-          <button className="w-full bg-white text-[#1E3A8A] hover:bg-gray-50 py-4 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all">
-            Ver detalles premium
-          </button>
-        </div>
-      </div>
-    );
-  }
 
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-[0_12px_24px_rgba(0,0,0,0.04)] border border-slate-200">
+  // Función para limpiar la ubicación y dejar SOLO el municipio/ciudad
+  const cleanLocation = (loc: string) => {
+    if (!loc) return '';
+    // Formato esperado: "Girardot - Calle 10 (Persona: Cesar Jimenez)"
+    // Tomamos solo lo que está antes del primer guion
+    return loc.split(' - ')[0].trim();
+  };
+
+  // Función para enmascarar el nombre (ej: Cesar -> ***ar)
+  const maskName = (name: string) => {
+    if (!name) return '***';
+    const parts = name.split(' ');
+    const firstPart = parts[0];
+    if (firstPart.length <= 2) return '***';
+    return '***' + firstPart.slice(-2);
+  };
+  
+  const CardContent = () => (
+    <>
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 text-brand">
+          <div className={`w-5 h-5 ${urgent ? 'text-orange-400' : 'text-brand'}`}>
             {getCategoryIcon(category)}
           </div>
-          <span className="bg-brand/10 text-brand px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
+          <span className={`${urgent ? 'bg-orange-500/20 text-orange-200' : 'bg-brand/10 text-brand'} px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest`}>
             {category}
           </span>
         </div>
-        <span className="text-slate-500 text-xs font-medium">{timeAgo}</span>
+        <span className={`${urgent ? 'text-blue-100/60' : 'text-slate-500'} text-xs font-medium`}>{timeAgo}</span>
       </div>
       
-      <h2 className="text-slate-900 text-xl font-bold mb-3 leading-tight">{title}</h2>
+      <h2 className={`${urgent ? 'text-white' : 'text-slate-900'} text-xl font-black mb-2 leading-tight`}>{title}</h2>
       
-      <div className="space-y-2 mb-6">
-        <div className="flex items-center gap-2 text-slate-500">
-          <MapPin className="w-[18px] h-[18px]" />
-          <span className="text-sm font-medium">{location}</span>
+      <p className={`${urgent ? 'text-blue-50/70' : 'text-slate-600'} text-sm mb-4 line-clamp-2`}>
+        {description}
+      </p>
+
+      <div className="flex flex-wrap gap-4 mb-6">
+        <div className={`flex items-center gap-1.5 ${urgent ? 'text-blue-100' : 'text-slate-500'}`}>
+          <MapPin className="w-4 h-4" />
+          <span className="text-xs font-bold">{cleanLocation(location)}</span>
         </div>
-        <div className="flex items-center gap-2 text-slate-500">
-          <Ruler className="w-[18px] h-[18px]" />
-          <span className="font-mono text-xs font-semibold">{distance}</span>
+        <div className={`flex items-center gap-1.5 ${urgent ? 'text-blue-100' : 'text-slate-500'}`}>
+          <User className="w-4 h-4" />
+          <span className="text-xs font-bold">Cliente: {maskName(clientName)}</span>
         </div>
       </div>
       
-      <div className="bg-slate-50 rounded-lg p-3 flex items-center gap-3 mb-6">
-        <Lock className="w-5 h-5 text-brand" />
-        <span className="text-xs text-slate-500 font-medium">Datos de contacto ocultos</span>
+      <div className={`${urgent ? 'bg-white/10' : 'bg-slate-50'} rounded-2xl p-4 flex flex-col gap-2 mb-6 border ${urgent ? 'border-white/10' : 'border-slate-100'}`}>
+        <div className="flex items-center gap-3">
+          <Lock className={`w-4 h-4 ${urgent ? 'text-orange-400' : 'text-brand'}`} />
+          <span className={`text-xs font-bold uppercase tracking-wider ${urgent ? 'text-white' : 'text-slate-700'}`}>Datos de contacto ocultos</span>
+        </div>
+        <p className={`text-[10px] leading-tight ${urgent ? 'text-blue-100/60' : 'text-slate-400'}`}>
+          Toma el trabajo para entrar en contacto con el cliente y coordinar la visita.
+        </p>
       </div>
       
-      <button className="w-full bg-[#EA580C] hover:bg-[#c2410c] text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
-        Tomar el trabajo ({credits} Créditos)
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/job/${id}`);
+        }}
+        className={`w-full py-4 rounded-2xl font-bold text-sm shadow-lg transition-all active:scale-95 ${
+          urgent 
+            ? 'bg-white text-blue-900 shadow-white/10' 
+            : 'bg-[#EA580C] text-white shadow-orange-500/20 hover:bg-[#c2410c]'
+        }`}
+      >
+        Tomar el trabajo ({credits} {credits === 1 ? 'Crédito' : 'Créditos'})
       </button>
+    </>
+  );
+
+  return (
+    <div 
+      onClick={() => navigate(`/job/${id}`)}
+      className={`relative overflow-hidden rounded-3xl p-6 shadow-xl border cursor-pointer group transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+        urgent 
+          ? 'bg-gradient-to-br from-blue-900 to-blue-950 border-blue-800' 
+          : 'bg-white border-slate-100'
+      }`}
+    >
+      <CardContent />
     </div>
   );
 }
+

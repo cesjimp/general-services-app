@@ -17,8 +17,14 @@ export default function FeedScreen() {
     try {
       const { data, error } = await supabase
         .from('jobs')
-        .select('*')
+        .select(`
+          *,
+          profiles:client_id (
+            full_name
+          )
+        `)
         .eq('status', 'open')
+        .neq('client_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -35,7 +41,7 @@ export default function FeedScreen() {
       {/* Header Section */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-slate-900 text-2xl font-extrabold tracking-tight">Hola, {profile?.fullName.split(' ')[0] || 'Profesional'}</h1>
+          <h1 className="text-slate-900 text-2xl font-extrabold tracking-tight">Hola, {profile?.fullName?.split(' ')[0] || 'Profesional'}</h1>
           <p className="text-slate-500 text-sm">Explora nuevas oportunidades</p>
         </div>
         <div className="bg-brand/5 rounded-full px-4 py-2 flex items-center gap-2 border border-brand/10">
@@ -67,9 +73,10 @@ export default function FeedScreen() {
               id={job.id}
               category={job.category}
               timeAgo="Reciente"
-              title={job.description.split('\n\n')[0]}
-              location={job.location.split(' - ')[0]}
-              distance="Girardot"
+              title={job.description.split('\n')[0].substring(0, 40)}
+              description={job.description}
+              location={job.location}
+              clientName={job.profiles?.full_name || 'Usuario'}
               credits={1}
               urgent={job.description.includes('¡Es Urgente!')}
             />

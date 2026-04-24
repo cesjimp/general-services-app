@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, PenTool, Wrench, Zap, Paintbrush, ShieldCheck, Star, Sparkles, Loader2, Plus, CheckCircle2, User } from 'lucide-react';
+import { ArrowLeft, PenTool, Wrench, Zap, Paintbrush, ShieldCheck, Star, Sparkles, Loader2, Plus, CheckCircle2, User } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ClientHomeScreen() {
@@ -7,7 +7,7 @@ export default function ClientHomeScreen() {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [aiState, setAiState] = useState<'idle' | 'analyzing' | 'result'>('idle');
-  const [aiResult, setAiResult] = useState<{ category: string, message: string } | null>(null);
+  const [aiResult, setAiResult] = useState<{ category: string, message: string, title?: string } | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,8 @@ export default function ClientHomeScreen() {
   const handleCategoryClick = (catName: string) => {
     setAiResult({ 
       category: catName, 
-      message: `Has seleccionado la categoría ${catName}. Puedes publicar tu solicitud ahora para recibir propuestas de expertos calificados.` 
+      message: `Has seleccionado la categoría ${catName}. Puedes publicar tu solicitud ahora para recibir propuestas de expertos calificados.`,
+      title: `Servicio de ${catName}`
     });
     setAiState('result');
   };
@@ -48,22 +49,27 @@ export default function ClientHomeScreen() {
       const query = searchQuery.toLowerCase();
       let category = 'General';
       let message = 'Entendemos lo que necesitas. Te mostraremos a los mejores profesionales para tu solicitud.';
+      let suggestedTitle = 'Mantenimiento General';
 
       if (query.includes('agua') || query.includes('tubo') || query.includes('fuga') || query.includes('lavamanos') || query.includes('gotera') || query.includes('cisterna')) {
         category = 'Plomería';
         message = 'Entiendo, tienes un problema de plomería o filtración. Para esto, el profesional más apropiado es un Plomero certificado.';
+        suggestedTitle = query.includes('fuga') ? 'Reparar fuga agua' : 'Servicio de plomería';
       } else if (query.includes('luz') || query.includes('cable') || query.includes('enchufe') || query.includes('corto') || query.includes('apagón')) {
         category = 'Electricidad';
         message = 'Veo que tienes un problema eléctrico. La persona idónea para este trabajo de forma segura es un Electricista.';
+        suggestedTitle = 'Reparación falla eléctrica';
       } else if (query.includes('pintar') || query.includes('pared') || query.includes('color') || query.includes('humedad')) {
         category = 'Pintura';
         message = '¡Claro! Quieres darle nueva vida a tu espacio. El experto ideal para este trabajo es un Pintor.';
+        suggestedTitle = 'Pintar paredes interiores';
       } else if (query.includes('closet') || query.includes('mueble') || query.includes('madera') || query.includes('mesa') || query.includes('silla')) {
         category = 'Carpintería';
         message = 'Veo que buscas un trabajo en madera. El experto ideal para diseñar o arreglar tu mueble es un Carpintero.';
+        suggestedTitle = 'Reparación muebles madera';
       }
 
-      setAiResult({ category, message });
+      setAiResult({ category, message, title: suggestedTitle });
       setAiState('result');
     }, 1500);
   };
@@ -153,11 +159,15 @@ export default function ClientHomeScreen() {
               </div>
               <div className="relative z-10">
                 <div className="flex justify-between items-start mb-3">
-                  <span className="bg-white/20 text-white text-xs font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md backdrop-blur-sm">
-                    {searchQuery ? 'Análisis Tuali AI' : 'Categoría Seleccionada'}
+                  <span className="bg-white/20 text-white text-[10px] font-extrabold uppercase tracking-[0.2em] px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
+                    {searchQuery ? 'Análisis Tuali AI' : 'Selección Directa'}
                   </span>
-                  <button onClick={resetSearch} className="text-white/70 hover:text-white text-xs underline font-medium">
-                    Limpiar
+                  <button 
+                    onClick={resetSearch} 
+                    className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all border border-white/10 active:scale-90"
+                    title="Cambiar categoría"
+                  >
+                    <ArrowLeft className="w-4 h-4 text-white" />
                   </button>
                 </div>
                 <p className="text-white text-sm font-medium leading-relaxed mb-4">
@@ -175,7 +185,7 @@ export default function ClientHomeScreen() {
                   </span>
                 </div>
                 <button 
-                  onClick={() => navigate(`/create-job?category=${aiResult.category}`)}
+                  onClick={() => navigate(`/create-job?category=${aiResult.category}&title=${aiResult.title || ''}`)}
                   className="w-full bg-white text-brand font-bold py-3 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />

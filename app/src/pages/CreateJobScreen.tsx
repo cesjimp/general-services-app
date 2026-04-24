@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Send, Sparkles, CheckCircle2, User, Users } from 'lucide-react';
+import { ArrowLeft, Send, Sparkles, User, Users, CheckCircle2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useRoleStore } from '../store/useRoleStore';
 import { getCategoryIcon } from '../utils/categoryIcons';
+import ProProfileModal from '../components/ui/ProProfileModal';
 
 export default function CreateJobScreen() {
   const navigate = useNavigate();
@@ -36,20 +37,36 @@ export default function CreateJobScreen() {
   const [selectedPros, setSelectedPros] = useState<string[]>([]);
   const [availablePros, setAvailablePros] = useState<any[]>([]);
   const [loadingPros, setLoadingPros] = useState(false);
+  const [viewingProId, setViewingProId] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const catParam = params.get('category');
+    const titleParam = params.get('title');
+    
     if (catParam) {
-      // Normalizamos: minúsculas y quitar tildes para coincidir con el select
       const normalizedCat = catParam
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
       
-      setCategory(normalizedCat);
+      const categoryMap: Record<string, string> = {
+        'plomeria': 'Plomería',
+        'electricidad': 'Electricidad',
+        'limpieza': 'Limpieza',
+        'pintura': 'Pintura',
+        'carpinteria': 'Carpintería',
+        'mecanica': 'Mecánica',
+        'general': 'Mantenimiento General'
+      };
+
+      setCategory(categoryMap[normalizedCat] || catParam);
       setIsCategoryLocked(true);
       setNotificationType('suggested');
+    }
+
+    if (titleParam) {
+      setTitle(titleParam);
     }
   }, [location]);
 
@@ -63,12 +80,6 @@ export default function CreateJobScreen() {
   async function fetchAvailablePros() {
     setLoadingPros(true);
     try {
-      // Normalizamos la categoría: quitamos tildes y pasamos a minúsculas
-      const catToSearch = category
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
       const { data, error } = await supabase
         .from('professionals_metadata')
         .select(`
@@ -81,24 +92,28 @@ export default function CreateJobScreen() {
             city_residence
           )
         `)
-        .contains('categories', [catToSearch])
+        .contains('categories', [category])
         .contains('service_cities', [locationName])
+        .neq('id', userId) // Excluir al propio usuario
         .order('avg_rating', { ascending: false })
         .limit(10);
 
       if (error) throw error;
       
       // Mapear los datos para que mantengan la estructura esperada por la UI
-      const formattedData = data?.map(item => ({
-        id: item.id,
-        full_name: item.profiles.full_name,
-        city_residence: item.profiles.city_residence,
-        professionals_metadata: {
-          categories: item.categories,
-          avg_rating: item.avg_rating,
-          service_cities: item.service_cities
-        }
-      })) || [];
+      const formattedData = data?.map(item => {
+        const profile = Array.isArray(item.profiles) ? item.profiles[0] : item.profiles;
+        return {
+          id: item.id,
+          full_name: profile?.full_name || 'Sin nombre',
+          city_residence: profile?.city_residence || 'No especificada',
+          professionals_metadata: {
+            categories: item.categories,
+            avg_rating: item.avg_rating,
+            service_cities: item.service_cities
+          }
+        };
+      }) || [];
 
       setAvailablePros(formattedData);
     } catch (error) {
@@ -125,11 +140,36 @@ export default function CreateJobScreen() {
 
     setIsSubmitting(true);
 
+    // Función para filtrar información sensible (Teléfonos, Emails, Direcciones específicas)
+    const filterSensitiveInfo = (text: string) => {
+      if (!text) return '';
+      
+      // 1. Filtrar teléfonos (formatos colombianos comunes)
+      let filtered = text.replace(/(\+?57)?\s?3\d{2}\s?\d{3}\s?\d{4}/g, '[TELÉFONO OCULTO]');
+      filtered = filtered.replace(/\d{7,10}/g, '[NÚMERO OCULTO]'); // Números largos
+      
+      // 2. Filtrar emails
+      filtered = filtered.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL OCULTO]');
+      
+      // 3. Filtrar menciones de "llamar", "escribir a", "whatsapp" seguidos de números
+      filtered = filtered.replace(/(llamar|escribir|whatsapp|cel|tel|contáctame al)\s*[:\-\s]*\d+/gi, '$1 [INFO OCULTA]');
+      
+      // 4. Filtrar palabras clave de dirección (Calle, Carrera, Barrio, etc.)
+      const addressKeywords = ['calle', 'carrera', 'cll', 'cra', 'barrio', 'diagonal', 'transversal', 'avenida', 'av', 'apartamento', 'apto', 'conjunto', 'edificio', 'urbanizacion', 'manzana', 'casa', 'lote'];
+      const addressRegex = new RegExp(`\\b(${addressKeywords.join('|')})\\b\\s*#?\\s*\\d*\\w*`, 'gi');
+      filtered = filtered.replace(addressRegex, '[UBICACIÓN OCULTA]');
+      
+      return filtered;
+    };
+
+    const cleanDescription = filterSensitiveInfo(description);
+    const cleanInstructions = filterSensitiveInfo(specialInstructions);
+
     try {
       const { error } = await supabase.from('jobs').insert({
         client_id: userId,
         category,
-        description: `${title}\n\n${description}\n\nInstrucciones: ${specialInstructions}`,
+        description: `${title}\n\n${cleanDescription}\n\nNota: ${cleanInstructions}`,
         location: `${locationName} - ${address} (Persona: ${receiverName})`,
         status: 'open'
       });
@@ -201,11 +241,11 @@ export default function CreateJobScreen() {
                       className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand appearance-none disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed transition-all`}
                     >
                       <option value="">Selecciona una categoría</option>
-                      <option value="plomeria">Plomería</option>
-                      <option value="electricidad">Electricidad</option>
-                      <option value="pintura">Pintura</option>
-                      <option value="carpinteria">Carpintería</option>
-                      <option value="general">Mantenimiento General</option>
+                      <option value="Plomería">Plomería</option>
+                      <option value="Electricidad">Electricidad</option>
+                      <option value="Pintura">Pintura</option>
+                      <option value="Carpintería">Carpintería</option>
+                      <option value="Mantenimiento General">Mantenimiento General</option>
                     </select>
                     {!isCategoryLocked && (
                       <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
@@ -218,19 +258,33 @@ export default function CreateJobScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Título de la solicitud</label>
+                  <div className="flex justify-between items-end mb-2">
+                    <label className="block text-sm font-bold text-slate-700">Título de la solicitud</label>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Máx. 4 palabras / Sin números</span>
+                  </div>
                   <input 
                     type="text" 
-                    placeholder="Ej: Fuga de agua en lavaplatos" 
+                    placeholder="Ej: Pintar fachada casa" 
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[0-9]/g, '');
+                      const words = val.split(/\s+/);
+                      if (words.length <= 4 || (words.length === 5 && val.endsWith(' '))) {
+                        setTitle(val);
+                      } else {
+                        setTitle(words.slice(0, 4).join(' '));
+                      }
+                    }}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Descripción detallada</label>
+                  <div className="flex flex-col mb-2">
+                    <label className="block text-sm font-bold text-slate-700">Descripción detallada</label>
+                    <span className="text-[10px] font-bold text-orange-600 uppercase">⚠️ Por seguridad, no incluyas contacto ni ubicación aquí</span>
+                  </div>
                   <textarea 
                     placeholder="Explica qué está sucediendo, desde cuándo, y qué necesitas que hagan..." 
                     rows={4}
@@ -332,6 +386,8 @@ export default function CreateJobScreen() {
                     type="text" 
                     placeholder="Calle, Carrera, Edificio, Apto..." 
                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-brand"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
                   />
                 </div>
 
@@ -350,7 +406,10 @@ export default function CreateJobScreen() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Indicaciones especiales</label>
+                  <div className="flex flex-col mb-2">
+                    <label className="block text-sm font-bold text-slate-700">Indicaciones especiales</label>
+                    <span className="text-[10px] font-bold text-orange-600 uppercase">⚠️ No incluyas teléfonos ni correos aquí</span>
+                  </div>
                   <textarea 
                     placeholder="Ej: Tocar el timbre que dice 201, entrar por la portería lateral..." 
                     rows={3}
@@ -454,13 +513,15 @@ export default function CreateJobScreen() {
                     availablePros.map(pro => (
                       <div 
                         key={pro.id}
-                        onClick={() => toggleProSelection(pro.id)}
-                        className={`p-4 rounded-xl border flex items-center gap-4 cursor-pointer transition-all ${selectedPros.includes(pro.id) ? 'border-brand bg-brand/5' : 'border-slate-100 bg-white'}`}
+                        className={`p-4 rounded-xl border flex items-center gap-4 transition-all ${selectedPros.includes(pro.id) ? 'border-brand bg-brand/5' : 'border-slate-100 bg-white'}`}
                       >
-                        <div className="bg-brand/10 w-10 h-10 rounded-full flex items-center justify-center font-bold text-brand p-2.5">
+                        <div 
+                          className="bg-brand/10 w-10 h-10 rounded-full flex items-center justify-center font-bold text-brand p-2.5 cursor-pointer"
+                          onClick={() => setViewingProId(pro.id)}
+                        >
                           {getCategoryIcon(category)}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 cursor-pointer" onClick={() => setViewingProId(pro.id)}>
                           <p className="font-bold text-slate-900 text-sm">{pro.full_name}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <p className="text-[10px] text-slate-500 font-medium">{category} • {pro.professionals_metadata?.avg_rating || 4.5} ★</p>
@@ -471,10 +532,16 @@ export default function CreateJobScreen() {
                             <span className="text-[9px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
                               Cubre {locationName}
                             </span>
+                            <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold whitespace-nowrap flex items-center gap-1 hover:bg-slate-200">
+                              Ver Perfil
+                            </span>
                           </div>
                         </div>
-                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPros.includes(pro.id) ? 'bg-brand border-brand text-white' : 'border-slate-200'}`}>
-                          {selectedPros.includes(pro.id) && <CheckCircle2 className="w-4 h-4" />}
+                        <div 
+                          onClick={() => toggleProSelection(pro.id)}
+                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all ${selectedPros.includes(pro.id) ? 'bg-brand border-brand text-white shadow-md shadow-brand/20 scale-110' : 'border-slate-300 hover:border-brand/50'}`}
+                        >
+                          {selectedPros.includes(pro.id) && <CheckCircle2 className="w-5 h-5" />}
                         </div>
                       </div>
                     ))
@@ -509,6 +576,16 @@ export default function CreateJobScreen() {
           )}
         </form>
       </div>
+
+      <ProProfileModal 
+        isOpen={!!viewingProId}
+        proId={viewingProId}
+        onClose={() => setViewingProId(null)}
+        isSelected={viewingProId ? selectedPros.includes(viewingProId) : false}
+        onSelect={() => {
+          if (viewingProId) toggleProSelection(viewingProId);
+        }}
+      />
     </main>
   );
 }

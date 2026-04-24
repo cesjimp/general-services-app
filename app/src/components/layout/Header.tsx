@@ -1,9 +1,23 @@
-import { Bell, RefreshCw } from 'lucide-react';
+import { Bell, User, Briefcase } from 'lucide-react';
 import { useRoleStore } from '../../store/useRoleStore';
+import { useNavigate } from 'react-router-dom';
 
 export default function Header() {
-  const { role, toggleRole, profile } = useRoleStore();
+  const navigate = useNavigate();
+  const { role, toggleRole, profile, isPro } = useRoleStore();
   const isClient = role === 'client';
+
+  const handleToggle = () => {
+    if (isClient && !isPro) {
+      navigate('/upgrade-to-pro');
+    } else {
+      toggleRole();
+      // Pequeño delay para navegar si es necesario
+      setTimeout(() => {
+        navigate(role === 'client' ? '/feed' : '/home');
+      }, 10);
+    }
+  };
 
   return (
     <header className="bg-white/80 backdrop-blur-xl w-full top-0 sticky z-50 shadow-sm flex justify-between items-center h-16 px-6 border-b border-slate-100">
@@ -17,7 +31,7 @@ export default function Header() {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-slate-900 text-sm font-bold tracking-tight leading-none truncate max-w-[120px]">
+          <span className="text-slate-900 text-sm font-bold tracking-tight leading-none truncate max-w-[100px] sm:max-w-[150px]">
             {profile?.fullName || 'Cargando...'}
           </span>
           <div className="flex items-center gap-1.5 mt-1">
@@ -28,22 +42,34 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Lado Derecho: Acciones y Créditos */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/50">
-          <span className="text-sm">🪙</span>
-          <span className="text-xs font-bold text-slate-700">{profile?.credits || 0}</span>
-        </div>
-        
-        <div className="h-8 w-[1px] bg-slate-200 mx-1 hidden sm:block"></div>
+      {/* Lado Derecho: Switch y Acciones */}
+      <div className="flex items-center gap-3">
+        {/* Créditos (Solo para Pros) */}
+        {!isClient && (
+          <div className="flex items-center gap-1.5 bg-brand/5 px-3 py-1.5 rounded-xl border border-brand/10">
+            <span className="text-sm">🪙</span>
+            <span className="text-xs font-bold text-brand">{profile?.credits || 0}</span>
+          </div>
+        )}
 
-        <button 
-          onClick={toggleRole}
-          className="bg-brand text-white hover:opacity-90 p-2 rounded-xl transition-all active:scale-95 shadow-md shadow-brand/20"
-          title="Cambiar Modo"
+        {/* Sleek Toggle Switch */}
+        <div 
+          onClick={handleToggle}
+          className="relative h-9 w-24 bg-slate-100 rounded-full p-1 cursor-pointer transition-all border border-slate-200/50"
         >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+          {/* Slider Background */}
+          <div 
+            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow-sm border border-slate-200 transition-all duration-300 transform ${
+              isClient ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          ></div>
+          
+          {/* Icons/Labels */}
+          <div className="relative flex w-full h-full items-center justify-around z-10">
+            <User className={`w-3.5 h-3.5 transition-colors ${isClient ? 'text-brand' : 'text-slate-400'}`} />
+            <Briefcase className={`w-3.5 h-3.5 transition-colors ${!isClient ? 'text-[#EA580C]' : 'text-slate-400'}`} />
+          </div>
+        </div>
         
         <button className="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-all relative">
           <Bell className="w-5 h-5" />

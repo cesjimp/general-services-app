@@ -125,7 +125,8 @@ export default function ClientJobsScreen() {
             {filteredJobs.map((job) => (
               <div 
                 key={job.id}
-                className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+                onClick={() => navigate(`/job/${job.id}`)}
+                className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer active:scale-[0.99]"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">

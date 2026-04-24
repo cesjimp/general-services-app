@@ -1,4 +1,4 @@
-import { LogIn, User, Briefcase, RefreshCcw } from 'lucide-react';
+import { LogIn, User, Briefcase, RefreshCcw, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useRoleStore } from '../../store/useRoleStore';
@@ -6,8 +6,12 @@ import { useState } from 'react';
 
 export default function AuthScreen() {
   const navigate = useNavigate();
-  const { setUser, setProfile } = useRoleStore();
+  const { setUser, setProfile, role: currentRole } = useRoleStore();
   const [debugMsg, setDebugMsg] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleTestLogin = async (role: 'client' | 'pro') => {
     // Clientes: 01 a 05 | Pros: 06 a 20
@@ -63,6 +67,63 @@ export default function AuthScreen() {
     }
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setDebugMsg('Validando credenciales...');
+
+    try {
+      // 1. Supabase Auth Login
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Usuario no encontrado');
+
+      const userId = authData.user.id;
+
+      // 2. Fetch Profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // 3. Check if professional
+      const { data: metaData } = await supabase
+        .from('professionals_metadata')
+        .select('categories')
+        .eq('id', userId)
+        .maybeSingle();
+
+      const isPro = !!metaData;
+      const role = isPro ? 'pro' : 'client'; // Default to pro if available, but could be selectable
+
+      // 4. Update Store
+      setUser(role, userId, isPro);
+      setProfile({
+        fullName: profileData.full_name,
+        avatarUrl: profileData.avatar_url,
+        credits: profileData.credits_balance || 0,
+        profession: (metaData?.categories?.[0]) || ''
+      });
+
+      setDebugMsg('¡Ingreso exitoso!');
+      setTimeout(() => {
+        navigate(role === 'client' ? '/home' : '/feed');
+      }, 500);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setDebugMsg(`Error: ${err.message || 'Credenciales inválidas'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Elementos decorativos de fondo */}
@@ -106,13 +167,60 @@ export default function AuthScreen() {
           {debugMsg && <p className="text-[9px] text-center mt-2 text-slate-400 italic">{debugMsg}</p>}
         </div>
 
-        {/* Action Buttons */}
+        {/* Real Login Form */}
+        <form onSubmit={handleLogin} className="w-full space-y-4 mb-6">
+          <div className="relative">
+            <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+            <input 
+              type="email" 
+              placeholder="Tu correo electrónico"
+              required
+              className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-sm font-medium"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="relative">
+            <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+            <input 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Tu contraseña"
+              required
+              className="w-full pl-12 pr-12 py-3.5 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-brand/20 focus:border-brand outline-none transition-all text-sm font-medium"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          </div>
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full bg-brand text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {loading ? 'Ingresando...' : <><LogIn className="w-5 h-5" /> Ingresar</>}
+          </button>
+        </form>
+
+        <div className="w-full flex items-center gap-4 mb-6">
+          <div className="flex-1 h-px bg-slate-200"></div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">o</span>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
+
         <div className="w-full space-y-4">
           <button 
-            className="w-full bg-brand text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            onClick={() => navigate('/register')}
+            className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            <LogIn className="w-5 h-5" />
-            Ingresar o Registrarse
+            <User className="w-5 h-5" />
+            Crear cuenta nueva
           </button>
           
           <button 

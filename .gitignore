@@ -12,3 +12,7 @@ Thumbs.db
 *.log
 tmp/
 temp/
+
+# Agents
+.claude/
+.gemini/

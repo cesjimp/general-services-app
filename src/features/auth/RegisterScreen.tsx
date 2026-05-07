@@ -284,7 +284,7 @@ export default function RegisterScreen() {
                   Sí, quiero ser Profesional
                 </button>
                 <button
-                  onClick={() => navigate('/home')}
+                  onClick={() => navigate('/app/home')}
                   className="w-full bg-white text-slate-500 font-bold py-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all"
                 >
                   No por ahora, solo buscaré servicios
@@ -381,7 +381,7 @@ export default function RegisterScreen() {
               </p>
               
               <button
-                onClick={() => navigate('/feed')}
+                onClick={() => navigate('/app/feed')}
                 className="w-full bg-brand text-white font-bold py-4 rounded-2xl shadow-lg shadow-brand/20 active:scale-[0.98] transition-all"
               >
                 Ir al Muro de Trabajos

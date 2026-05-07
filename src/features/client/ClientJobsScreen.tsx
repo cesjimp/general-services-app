@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useRoleStore } from '../store/useRoleStore';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
 import { 
   Calendar, 
   Clock, 
@@ -15,7 +15,7 @@ import {
   History,
   Star
 } from 'lucide-react';
-import { getCategoryIcon } from '../utils/categoryIcons';
+import { getCategoryIcon } from '../../utils/categoryIcons';
 
 interface Job {
   id: string;
@@ -100,7 +100,7 @@ export default function ClientJobsScreen() {
       {/* Header */}
       <header className="bg-white border-b border-slate-100 px-6 py-4 sticky top-0 z-20">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/home')} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+          <button onClick={() => navigate('/app/home')} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <h1 className="text-xl font-black text-slate-900 tracking-tight">Mis Solicitudes</h1>
@@ -150,7 +150,7 @@ export default function ClientJobsScreen() {
             </p>
             {filter === 'active' && (
               <button 
-                onClick={() => navigate('/create-job')}
+                onClick={() => navigate('/app/create-job')}
                 className="bg-brand text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-lg shadow-brand/20 active:scale-95 transition-all"
               >
                 Publicar un trabajito
@@ -164,7 +164,7 @@ export default function ClientJobsScreen() {
               return (
                 <div 
                   key={job.id}
-                  onClick={() => navigate(`/job/${job.id}`)}
+                  onClick={() => navigate(`/app/job/${job.id}`)}
                   className="bg-white rounded-3xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all group cursor-pointer active:scale-[0.99] relative overflow-hidden"
                 >
                   {/* Status Indicator */}
@@ -190,9 +190,12 @@ export default function ClientJobsScreen() {
                       <h3 className="font-bold text-slate-900 group-hover:text-brand transition-colors text-lg leading-tight mb-1">
                         {job.title}
                       </h3>
+                      <p className="text-[11px] text-slate-500 line-clamp-1 mb-2 font-medium leading-relaxed">
+                        {job.description}
+                      </p>
                       <div className="flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-xs font-medium text-slate-500">{job.location}</span>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{job.location}</span>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-brand transition-all" />
@@ -203,24 +206,26 @@ export default function ClientJobsScreen() {
                     {job.status === 'review_pending' ? (
                       <div className="flex items-center gap-2 text-indigo-600 bg-indigo-50 w-full p-2 rounded-xl border border-indigo-100">
                         <Star className="w-4 h-4 fill-indigo-600" />
-                        <span className="text-xs font-black uppercase tracking-tight">¡Califica el servicio!</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight">¡Califica el servicio para finalizar!</span>
                       </div>
                     ) : job.status === 'agreement_pending' ? (
                       <div className="flex items-center gap-2 text-orange-600 bg-orange-50 w-full p-2 rounded-xl border border-orange-100">
                         <User className="w-4 h-4" />
-                        <span className="text-xs font-black uppercase tracking-tight">¡Confirmación requerida!</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight">¡Confirma el acuerdo con el experto!</span>
                       </div>
                     ) : job.profiles?.full_name ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-brand/10 flex items-center justify-center">
-                          <User className="w-3.5 h-3.5 text-brand" />
+                      <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                        <div className="w-5 h-5 rounded-lg bg-brand/10 flex items-center justify-center">
+                          <User className="w-3 h-3 text-brand" />
                         </div>
-                        <span className="text-xs font-bold text-slate-700">Pro: {job.profiles.full_name}</span>
+                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">
+                          {job.status === 'completed' ? 'Atendido por' : 'Experto asignado'}: {job.profiles.full_name}
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-slate-400">
                         <Clock className="w-4 h-4" />
-                        <span className="text-xs font-bold">Esperando expertos...</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight">Esperando expertos interesados...</span>
                       </div>
                     )}
                   </div>

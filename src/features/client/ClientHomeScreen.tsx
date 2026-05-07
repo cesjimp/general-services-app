@@ -16,7 +16,7 @@ export default function ClientHomeScreen() {
       setShowSuccess(true);
       const timer = setTimeout(() => {
         setShowSuccess(false);
-        navigate('/home', { replace: true });
+        navigate('/app/home', { replace: true });
       }, 4000);
       return () => clearTimeout(timer);
     }
@@ -185,7 +185,7 @@ export default function ClientHomeScreen() {
                   </span>
                 </div>
                 <button 
-                  onClick={() => navigate(`/create-job?category=${aiResult.category}&title=${aiResult.title || ''}`)}
+                  onClick={() => navigate(`/app/create-job?category=${aiResult.category}&title=${aiResult.title || ''}`)}
                   className="w-full bg-white text-brand font-bold py-3 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -295,7 +295,7 @@ export default function ClientHomeScreen() {
       {/* Floating Action Button (FAB) para crear trabajo */}
       <div className="fixed bottom-24 right-6 z-30">
         <button 
-          onClick={() => navigate('/create-job')}
+          onClick={() => navigate('/app/create-job')}
           className="bg-[#EA580C] text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-all hover:scale-110"
         >
           <Plus className="w-8 h-8" />

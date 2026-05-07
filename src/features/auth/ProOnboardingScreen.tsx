@@ -206,7 +206,7 @@ export default function ProOnboardingScreen() {
           Tu perfil profesional ha sido verificado. Te hemos acreditado <span className="text-emerald-600 font-bold">50 créditos</span> para que empieces a ganar hoy mismo.
         </p>
         <button
-          onClick={() => navigate('/feed')}
+          onClick={() => navigate('/app/feed')}
           className="w-full max-w-xs bg-brand text-white font-black py-5 rounded-[2rem] shadow-xl shadow-brand/30 active:scale-[0.97] transition-all text-lg"
         >
           Ver trabajos ahora

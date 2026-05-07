@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Send, Sparkles, User, Users, CheckCircle2, Lock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
-import { useRoleStore } from '../store/useRoleStore';
-import { getCategoryIcon } from '../utils/categoryIcons';
-import { detectSensitiveInfo, maskSensitiveInfo } from '../utils/privacy';
-import ProProfileModal from '../components/ui/ProProfileModal';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
+import { getCategoryIcon } from '../../utils/categoryIcons';
+import { detectSensitiveInfo, maskSensitiveInfo } from '../../utils/privacy';
+import ProProfileModal from '../../components/ui/ProProfileModal';
 
 export default function CreateJobScreen() {
   const navigate = useNavigate();
@@ -167,7 +167,7 @@ export default function CreateJobScreen() {
 
       if (error) throw error;
 
-      navigate('/home?success=true');
+      navigate('/app/home?success=true');
     } catch (err: any) {
       console.error('Error creando trabajo:', err);
       alert('Hubo un error al publicar el trabajo.');

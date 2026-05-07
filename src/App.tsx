@@ -3,39 +3,40 @@ import AppLayout from './components/layout/AppLayout';
 import { User, Briefcase } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 import { useRoleStore } from './store/useRoleStore';
-import FeedScreen from './pages/FeedScreen';
-import ClientHomeScreen from './pages/ClientHomeScreen';
-import AuthScreen from './pages/auth/AuthScreen';
-import UpgradeToProScreen from './pages/auth/UpgradeToProScreen';
-import JobDetailScreen from './pages/JobDetailScreen';
-import CreateJobScreen from './pages/CreateJobScreen';
-import ClientJobsScreen from './pages/ClientJobsScreen';
-import RegisterScreen from './pages/auth/RegisterScreen';
-import ProOnboardingScreen from './pages/auth/ProOnboardingScreen';
-import CreditsScreen from './pages/CreditsScreen';
+import FeedScreen from './features/professional/FeedScreen';
+import ClientHomeScreen from './features/client/ClientHomeScreen';
+import AuthScreen from './features/auth/AuthScreen';
+import UpgradeToProScreen from './features/auth/UpgradeToProScreen';
+import JobDetailScreen from './features/shared/JobDetailScreen';
+import CreateJobScreen from './features/client/CreateJobScreen';
+import ClientJobsScreen from './features/client/ClientJobsScreen';
+import RegisterScreen from './features/auth/RegisterScreen';
+import ProOnboardingScreen from './features/auth/ProOnboardingScreen';
+import CreditsScreen from './features/shared/CreditsScreen';
+import LandingPage from './features/marketing/LandingPage';
 
-import ProJobsScreen from './pages/ProJobsScreen';
+import ProJobsScreen from './features/professional/ProJobsScreen';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Rutas fuera del layout principal (Sin Header ni BottomNav) */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthScreen />} />
         <Route path="/register" element={<RegisterScreen />} />
-        <Route path="/upgrade-to-pro" element={<UpgradeToProScreen />} />
-        <Route path="/pro-onboarding" element={<ProOnboardingScreen />} />
-        <Route path="/job/:id" element={<JobDetailScreen />} />
-        <Route path="/create-job" element={<CreateJobScreen />} />
-        <Route path="/credits" element={<CreditsScreen />} />
-
         {/* Rutas dentro del layout principal */}
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Navigate to="/auth" replace />} />
+        <Route path="/app" element={<AppLayout />}>
+          <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<ClientHomeScreen />} />
           <Route path="feed" element={<FeedScreen />} />
           <Route path="mis-trabajos" element={<ClientJobsScreen />} />
           <Route path="agenda" element={<ProJobsScreen />} />
+          <Route path="job/:id" element={<JobDetailScreen />} />
+          <Route path="create-job" element={<CreateJobScreen />} />
+          <Route path="credits" element={<CreditsScreen />} />
+          <Route path="upgrade-to-pro" element={<UpgradeToProScreen />} />
+          <Route path="pro-onboarding" element={<ProOnboardingScreen />} />
           <Route path="profile" element={
             <div className="p-6">
               <h2 className="text-xl font-bold text-slate-800 mb-4">Mi Perfil</h2>
@@ -51,7 +52,7 @@ function App() {
                 </div>
                 
                 <button 
-                  onClick={() => window.location.href = '/upgrade-to-pro'} 
+                  onClick={() => window.location.href = '/app/upgrade-to-pro'} 
                   className="w-full bg-[#EA580C]/10 text-[#EA580C] font-bold py-4 rounded-2xl border border-[#EA580C]/20 hover:bg-[#EA580C]/20 transition-all flex items-center justify-center gap-2"
                 >
                   <Briefcase className="w-5 h-5" />
@@ -70,7 +71,7 @@ function App() {
               </button>
             </div>
           } />
-          <Route path="*" element={<Navigate to="/home" replace />} />
+          <Route path="*" element={<Navigate to="home" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

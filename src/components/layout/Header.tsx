@@ -9,11 +9,11 @@ export default function Header() {
 
   const handleToggle = () => {
     if (isClient && !isPro) {
-      navigate('/upgrade-to-pro');
+      navigate('/app/upgrade-to-pro');
     } else {
       toggleRole();
       setTimeout(() => {
-        navigate(role === 'client' ? '/feed' : '/home');
+        navigate(role === 'client' ? '/app/feed' : '/app/home');
       }, 10);
     }
   };
@@ -87,7 +87,7 @@ export default function Header() {
       <div className="flex items-center gap-2 ml-2 flex-shrink-0">
         {!isClient && (
           <button 
-            onClick={() => navigate('/credits')}
+            onClick={() => navigate('/app/credits')}
             className="flex items-center gap-1.5 bg-amber-400/10 px-2.5 py-1.5 rounded-xl border border-amber-400/20 active:scale-95 group"
           >
             <div className="w-4.5 h-4.5 bg-amber-400 rounded-full flex items-center justify-center shadow-inner group-hover:rotate-12 transition-transform">

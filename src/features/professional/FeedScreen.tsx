@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import JobCard from '../components/ui/JobCard';
+import JobCard from '../../components/ui/JobCard';
 import { Briefcase } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
-import { useRoleStore } from '../store/useRoleStore';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
 
 export default function FeedScreen() {
   const [jobs, setJobs] = useState<any[]>([]);

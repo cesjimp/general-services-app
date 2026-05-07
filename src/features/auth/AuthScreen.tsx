@@ -56,7 +56,7 @@ export default function AuthScreen() {
 
       setDebugMsg(`Bienvenido, ${profileData.full_name}`);
       setTimeout(() => {
-        navigate(role === 'client' ? '/home' : '/feed');
+        navigate(role === 'client' ? '/app/home' : '/app/feed');
       }, 500);
     } catch (err: any) {
       console.error('Login error:', err);
@@ -113,7 +113,7 @@ export default function AuthScreen() {
 
       setDebugMsg('¡Ingreso exitoso!');
       setTimeout(() => {
-        navigate(role === 'client' ? '/home' : '/feed');
+        navigate(role === 'client' ? '/app/home' : '/app/feed');
       }, 500);
     } catch (err: any) {
       console.error('Login error:', err);

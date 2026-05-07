@@ -8,10 +8,10 @@ export default function UpgradeToProScreen() {
 
   const handleStartOnboarding = () => {
     if (isPro) {
-      navigate('/feed');
+      navigate('/app/feed');
       return;
     }
-    navigate('/pro-onboarding');
+    navigate('/app/pro-onboarding');
   };
 
   return (

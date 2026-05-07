@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, TrendingDown, TrendingUp, Wallet, Clock, Info } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
-import { useRoleStore } from '../store/useRoleStore';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
 
 interface Transaction {
   id: string;

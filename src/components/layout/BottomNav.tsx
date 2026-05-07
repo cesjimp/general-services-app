@@ -11,17 +11,17 @@ export default function BottomNav() {
   const tabs = [
     { 
       name: 'Home', 
-      path: isClient ? '/home' : '/feed', 
+      path: isClient ? '/app/home' : '/app/feed', 
       icon: Home 
     },
     { 
       name: 'Trabajos', 
-      path: isClient ? '/mis-trabajos' : '/agenda', 
+      path: isClient ? '/app/mis-trabajos' : '/app/agenda', 
       icon: ClipboardList 
     },
     { 
       name: 'Perfil', 
-      path: '/profile', 
+      path: '/app/profile', 
       icon: User 
     },
   ];

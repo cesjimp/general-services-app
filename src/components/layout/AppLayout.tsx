@@ -12,9 +12,9 @@ export default function AppLayout() {
   useEffect(() => {
     // Si estamos en home o feed y cambiamos de rol, forzamos la redirección
     if (role === 'pro' && location.pathname.includes('/home')) {
-      navigate('/feed', { replace: true });
+      navigate('/app/feed', { replace: true });
     } else if (role === 'client' && location.pathname.includes('/feed')) {
-      navigate('/home', { replace: true });
+      navigate('/app/home', { replace: true });
     }
     // Si estamos en Perfil, no redirigimos obligatoriamente, pero se aplicará el color.
   }, [role, navigate, location.pathname]);

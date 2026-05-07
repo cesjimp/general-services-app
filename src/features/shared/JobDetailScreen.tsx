@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, ShieldCheck, AlertCircle, User, Star, CheckCircle, ClipboardCheck } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
-import { useRoleStore } from '../store/useRoleStore';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
 
 interface Lead {
   id: string;
@@ -132,15 +132,20 @@ export default function JobDetailScreen() {
   }
 
   // El CLIENTE confirma que el acuerdo es real
-  async function confirmAgreement() {
+  async function confirmAgreement(proId?: string) {
     if (!job) return;
     setIsProcessing(true);
     try {
+      const updateData: { status: string; selected_pro_id?: string } = { 
+        status: 'in_progress' 
+      };
+      if (proId) {
+        updateData.selected_pro_id = proId;
+      }
+
       const { error } = await supabase
         .from('jobs')
-        .update({ 
-          status: 'in_progress'
-        })
+        .update(updateData)
         .eq('id', job.id);
 
       if (error) throw error;
@@ -325,11 +330,17 @@ export default function JobDetailScreen() {
             <span className="bg-brand/10 text-brand px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
               {job.category}
             </span>
+            {hasApplied && (
+              <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1 shadow-lg shadow-emerald-500/20 animate-in fade-in zoom-in duration-500">
+                <CheckCircle className="w-3 h-3" />
+                Postulado
+              </span>
+            )}
             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
               job.status === 'open' ? 'bg-emerald-100 text-emerald-600' : 
               job.status === 'contacted' ? 'bg-amber-100 text-amber-600' :
-              job.status === 'in_progress' ? 'bg-emerald-500 text-white' :
-              job.status === 'review_pending' ? 'bg-blue-500 text-white' :
+              job.status === 'in_progress' ? 'bg-emerald-600 text-white' :
+              job.status === 'review_pending' ? 'bg-blue-600 text-white' :
               'bg-slate-100 text-slate-600'
             }`}>
               {job.status === 'open' ? 'Abierto' : 
@@ -414,12 +425,7 @@ export default function JobDetailScreen() {
                     <div className="text-right">
                       <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider mb-2">¿Pactaste con él?</p>
                       <button
-                        onClick={() => {
-                          // Simplemente actualizamos localmente y confirmamos
-                          // En una app real esto sería atómico
-                          job.selected_pro_id = lead.pro_id;
-                          confirmAgreement();
-                        }}
+                        onClick={() => confirmAgreement(lead.pro_id)}
                         disabled={isProcessing}
                         className="bg-brand text-white px-5 py-2.5 rounded-xl font-black text-xs shadow-lg shadow-brand/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 uppercase tracking-widest"
                       >

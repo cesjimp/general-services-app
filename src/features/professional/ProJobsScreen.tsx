@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import { useRoleStore } from '../store/useRoleStore';
-import JobCard from '../components/ui/JobCard';
+import { supabase } from '../../lib/supabaseClient';
+import { useRoleStore } from '../../store/useRoleStore';
+import JobCard from '../../components/ui/JobCard';
 import { Briefcase, History, ClipboardCheck } from 'lucide-react';
 
 export default function ProJobsScreen() {

@@ -16,3 +16,18 @@ temp/
 # Agents
 .claude/
 .gemini/
+
+# Dependencies & Build
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Project folders (excluded from version control)
+brand/
+design stitch/
+info/
+
+# Notes
+observaciones.txt
+.morning_brief.md
